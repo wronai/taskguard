@@ -8,11 +8,13 @@ ENV PYTHONUNBUFFERED=1
 
 # Update baseurl for CentOS 8 repositories
 RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*.repo && \
-    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo && \
-    sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*.repo
+    sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-* && \
+    sed -i 's|baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
 
 # Install common dependencies and locales
-RUN dnf install -y \
+RUN dnf install -y dnf-plugins-core && \
+    dnf config-manager --set-enabled powertools && \
+    dnf install -y \
     python3 \
     python3-pip \
     git \
@@ -23,9 +25,12 @@ RUN dnf install -y \
     glibc-langpack-en \
     glibc-locale-source \
     glibc-langpack-en \
+    langpacks-en \
+    glibc-locale-source \
     && dnf clean all \
     && rm -rf /var/cache/dnf \
-    && localedef -c -f UTF-8 -i en_US en_US.UTF-8
+    && localedef -c -f UTF-8 -i en_US en_US.UTF-8 \
+    && echo 'LANG="en_US.UTF-8"' > /etc/locale.conf
 
 # Create a non-root user
 RUN useradd -m -s /bin/bash tester && \
