@@ -4,22 +4,29 @@
 Smart parsing and analysis using local LLM (Ollama/LM Studio)
 """
 
-import os, sys, json, subprocess, time, yaml, requests
-from pathlib import Path
-from datetime import datetime
-from typing import Dict, List, Optional, Any, Union
+import json
+import os
 import re
+import subprocess
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
+
+import requests
+import yaml
 
 
 class LocalLLMInterface:
     """Interface for local LLM services (Ollama, LM Studio, etc.)"""
 
     def __init__(self, config: Dict):
-        self.config = config.get('local_llm', {})
-        self.provider = self.config.get('provider', 'ollama')
-        self.model = self.config.get('model', 'llama3.2:3b')
-        self.base_url = self.config.get('base_url', 'http://localhost:11434')
-        self.timeout = self.config.get('timeout', 30)
+        self.config = config.get("local_llm", {})
+        self.provider = self.config.get("provider", "ollama")
+        self.model = self.config.get("model", "llama3.2:3b")
+        self.base_url = self.config.get("base_url", "http://localhost:11434")
+        self.timeout = self.config.get("timeout", 30)
 
         # Test connection
         self.available = self.test_connection()
@@ -27,10 +34,10 @@ class LocalLLMInterface:
     def test_connection(self) -> bool:
         """Test if local LLM is available"""
         try:
-            if self.provider == 'ollama':
+            if self.provider == "ollama":
                 response = requests.get(f"{self.base_url}/api/tags", timeout=5)
                 return response.status_code == 200
-            elif self.provider == 'lmstudio':
+            elif self.provider == "lmstudio":
                 response = requests.get(f"{self.base_url}/v1/models", timeout=5)
                 return response.status_code == 200
             return False
@@ -43,9 +50,9 @@ class LocalLLMInterface:
             return None
 
         try:
-            if self.provider == 'ollama':
+            if self.provider == "ollama":
                 return self._query_ollama(prompt, system_prompt)
-            elif self.provider == 'lmstudio':
+            elif self.provider == "lmstudio":
                 return self._query_lmstudio(prompt, system_prompt)
         except Exception as e:
             print(f"🤖 LLM query failed: {e}")
@@ -61,18 +68,16 @@ class LocalLLMInterface:
             "options": {
                 "temperature": 0.1,  # Low temperature for consistent parsing
                 "top_p": 0.9,
-                "max_tokens": 2000
-            }
+                "max_tokens": 2000,
+            },
         }
 
         response = requests.post(
-            f"{self.base_url}/api/generate",
-            json=data,
-            timeout=self.timeout
+            f"{self.base_url}/api/generate", json=data, timeout=self.timeout
         )
 
         if response.status_code == 200:
-            return response.json().get('response', '').strip()
+            return response.json().get("response", "").strip()
         return ""
 
     def _query_lmstudio(self, prompt: str, system_prompt: str = "") -> str:
@@ -86,17 +91,15 @@ class LocalLLMInterface:
             "model": self.model,
             "messages": messages,
             "temperature": 0.1,
-            "max_tokens": 2000
+            "max_tokens": 2000,
         }
 
         response = requests.post(
-            f"{self.base_url}/v1/chat/completions",
-            json=data,
-            timeout=self.timeout
+            f"{self.base_url}/v1/chat/completions", json=data, timeout=self.timeout
         )
 
         if response.status_code == 200:
-            return response.json()['choices'][0]['message']['content'].strip()
+            return response.json()["choices"][0]["message"]["content"].strip()
         return ""
 
 
@@ -106,8 +109,8 @@ class IntelligentDocumentParser:
     def __init__(self, llm: LocalLLMInterface):
         self.llm = llm
         self.fallback_parsers = {
-            'todo': self._fallback_parse_todo,
-            'changelog': self._fallback_parse_changelog
+            "todo": self._fallback_parse_todo,
+            "changelog": self._fallback_parse_changelog,
         }
 
     def parse_todo(self, file_path: Path) -> List[Dict]:
@@ -115,7 +118,7 @@ class IntelligentDocumentParser:
         if not file_path.exists():
             return []
 
-        content = file_path.read_text(encoding='utf-8', errors='ignore')
+        content = file_path.read_text(encoding="utf-8", errors="ignore")
 
         # Try LLM parsing first
         if self.llm.available:
@@ -124,14 +127,14 @@ class IntelligentDocumentParser:
                 return parsed
 
         # Fallback to regex parsing
-        return self.fallback_parsers['todo'](content)
+        return self.fallback_parsers["todo"](content)
 
     def parse_changelog(self, file_path: Path) -> List[Dict]:
         """Parse changelog in any format using LLM"""
         if not file_path.exists():
             return []
 
-        content = file_path.read_text(encoding='utf-8', errors='ignore')
+        content = file_path.read_text(encoding="utf-8", errors="ignore")
 
         # Try LLM parsing first
         if self.llm.available:
@@ -140,7 +143,7 @@ class IntelligentDocumentParser:
                 return parsed
 
         # Fallback to regex parsing
-        return self.fallback_parsers['changelog'](content)
+        return self.fallback_parsers["changelog"](content)
 
     def _llm_parse_todo(self, content: str) -> Optional[List[Dict]]:
         """Use LLM to parse TODO content"""
@@ -180,8 +183,8 @@ Return only valid JSON array, no explanations."""
             try:
                 # Clean up the response (remove markdown formatting if present)
                 json_str = result.strip()
-                if json_str.startswith('```'):
-                    json_str = '\n'.join(json_str.split('\n')[1:-1])
+                if json_str.startswith("```"):
+                    json_str = "\n".join(json_str.split("\n")[1:-1])
 
                 parsed = json.loads(json_str)
                 if isinstance(parsed, list):
@@ -227,8 +230,8 @@ Return only valid JSON array, no explanations."""
         if result:
             try:
                 json_str = result.strip()
-                if json_str.startswith('```'):
-                    json_str = '\n'.join(json_str.split('\n')[1:-1])
+                if json_str.startswith("```"):
+                    json_str = "\n".join(json_str.split("\n")[1:-1])
 
                 parsed = json.loads(json_str)
                 if isinstance(parsed, list):
@@ -243,51 +246,53 @@ Return only valid JSON array, no explanations."""
         tasks = []
         task_id = 1
 
-        lines = content.split('\n')
+        lines = content.split("\n")
         current_task = None
 
         for line in lines:
             line = line.strip()
-            if not line or line.startswith('#'):
+            if not line or line.startswith("#"):
                 continue
 
             # Look for task indicators
-            if any(indicator in line for indicator in ['- [ ]', '- [x]', '☐', '✅', '⏳']):
+            if any(
+                indicator in line for indicator in ["- [ ]", "- [x]", "☐", "✅", "⏳"]
+            ):
                 if current_task:
                     tasks.append(current_task)
 
                 # Extract status
-                status = 'pending'
-                if '- [x]' in line or '✅' in line:
-                    status = 'completed'
-                elif '⏳' in line:
-                    status = 'in_progress'
+                status = "pending"
+                if "- [x]" in line or "✅" in line:
+                    status = "completed"
+                elif "⏳" in line:
+                    status = "in_progress"
 
                 # Extract priority
-                priority = 'medium'
-                if '🔴' in line or 'HIGH' in line.upper():
-                    priority = 'high'
-                elif '🟢' in line or 'LOW' in line.upper():
-                    priority = 'low'
+                priority = "medium"
+                if "🔴" in line or "HIGH" in line.upper():
+                    priority = "high"
+                elif "🟢" in line or "LOW" in line.upper():
+                    priority = "low"
 
                 # Extract title
-                title = re.sub(r'[-\[\]x☐✅⏳🔴🟡🟢]', '', line).strip()
-                title = re.sub(r'\s+', ' ', title)
+                title = re.sub(r"[-\[\]x☐✅⏳🔴🟡🟢]", "", line).strip()
+                title = re.sub(r"\s+", " ", title)
 
                 current_task = {
-                    'id': task_id,
-                    'title': title,
-                    'status': status,
-                    'priority': priority,
-                    'category': 'feature',
-                    'subtasks': []
+                    "id": task_id,
+                    "title": title,
+                    "status": status,
+                    "priority": priority,
+                    "category": "feature",
+                    "subtasks": [],
                 }
                 task_id += 1
 
-            elif current_task and line.startswith('  -'):
+            elif current_task and line.startswith("  -"):
                 # Subtask
                 subtask = line[3:].strip()
-                current_task['subtasks'].append(subtask)
+                current_task["subtasks"].append(subtask)
 
         if current_task:
             tasks.append(current_task)
@@ -297,7 +302,7 @@ Return only valid JSON array, no explanations."""
     def _fallback_parse_changelog(self, content: str) -> List[Dict]:
         """Fallback regex-based changelog parsing"""
         entries = []
-        lines = content.split('\n')
+        lines = content.split("\n")
         current_entry = None
 
         for line in lines:
@@ -306,34 +311,32 @@ Return only valid JSON array, no explanations."""
                 continue
 
             # Look for date headers
-            date_match = re.search(r'(\d{4}-\d{2}-\d{2})', line)
-            if date_match and (line.startswith('#') or line.startswith('##')):
+            date_match = re.search(r"(\d{4}-\d{2}-\d{2})", line)
+            if date_match and (line.startswith("#") or line.startswith("##")):
                 if current_entry:
                     entries.append(current_entry)
 
                 current_entry = {
-                    'date': date_match.group(1),
-                    'version': '',
-                    'entries': []
+                    "date": date_match.group(1),
+                    "version": "",
+                    "entries": [],
                 }
 
-            elif current_entry and line.startswith('-'):
+            elif current_entry and line.startswith("-"):
                 # Change entry
-                change_type = 'change'
-                if '✅' in line or 'Added' in line:
-                    change_type = 'feature'
-                elif '🐛' in line or 'Fixed' in line:
-                    change_type = 'bugfix'
-                elif '❌' in line or 'Removed' in line:
-                    change_type = 'removal'
+                change_type = "change"
+                if "✅" in line or "Added" in line:
+                    change_type = "feature"
+                elif "🐛" in line or "Fixed" in line:
+                    change_type = "bugfix"
+                elif "❌" in line or "Removed" in line:
+                    change_type = "removal"
 
-                description = re.sub(r'[-✅🐛❌]', '', line).strip()
+                description = re.sub(r"[-✅🐛❌]", "", line).strip()
 
-                current_entry['entries'].append({
-                    'type': change_type,
-                    'description': description,
-                    'details': []
-                })
+                current_entry["entries"].append(
+                    {"type": change_type, "description": description, "details": []}
+                )
 
         if current_entry:
             entries.append(current_entry)
@@ -350,7 +353,9 @@ class IntelligentTaskController:
         self.parser = IntelligentDocumentParser(self.llm)
         self.state = self.load_state()
 
-        print(f"🤖 Local LLM: {'✅ Connected' if self.llm.available else '❌ Unavailable'}")
+        print(
+            f"🤖 Local LLM: {'✅ Connected' if self.llm.available else '❌ Unavailable'}"
+        )
         if self.llm.available:
             print(f"📡 Using: {self.llm.provider} ({self.llm.model})")
 
@@ -359,43 +364,43 @@ class IntelligentTaskController:
         config_file = Path.cwd() / ".llmcontrol.yaml"
 
         default_config = {
-            'local_llm': {
-                'provider': 'ollama',  # ollama, lmstudio, openai_compatible
-                'model': 'llama3.2:3b',  # or 'microsoft/DialoGPT-medium', etc.
-                'base_url': 'http://localhost:11434',
-                'timeout': 30,
-                'fallback_to_regex': True
+            "local_llm": {
+                "provider": "ollama",  # ollama, lmstudio, openai_compatible
+                "model": "llama3.2:3b",  # or 'microsoft/DialoGPT-medium', etc.
+                "base_url": "http://localhost:11434",
+                "timeout": 30,
+                "fallback_to_regex": True,
             },
-            'documents': {
-                'todo_formats': ['markdown', 'yaml', 'plain_text', 'org_mode'],
-                'changelog_formats': ['markdown', 'keep_a_changelog', 'conventional'],
-                'auto_detect_format': True,
-                'smart_parsing': True
+            "documents": {
+                "todo_formats": ["markdown", "yaml", "plain_text", "org_mode"],
+                "changelog_formats": ["markdown", "keep_a_changelog", "conventional"],
+                "auto_detect_format": True,
+                "smart_parsing": True,
             },
-            'intelligence': {
-                'analyze_task_context': True,
-                'suggest_improvements': True,
-                'detect_blockers': True,
-                'estimate_completion': True,
-                'auto_categorize': True
+            "intelligence": {
+                "analyze_task_context": True,
+                "suggest_improvements": True,
+                "detect_blockers": True,
+                "estimate_completion": True,
+                "auto_categorize": True,
             },
-            'focus': {
-                'max_files_per_task': 3,
-                'require_todo_completion': True,
-                'auto_changelog': True,
-                'smart_task_suggestions': True
-            }
+            "focus": {
+                "max_files_per_task": 3,
+                "require_todo_completion": True,
+                "auto_changelog": True,
+                "smart_task_suggestions": True,
+            },
         }
 
         if config_file.exists():
             try:
-                with open(config_file, 'r') as f:
+                with open(config_file, "r") as f:
                     user_config = yaml.safe_load(f)
                     return self.merge_config(default_config, user_config or {})
             except:
                 pass
 
-        with open(config_file, 'w') as f:
+        with open(config_file, "w") as f:
             yaml.dump(default_config, f, default_flow_style=False, indent=2)
 
         return default_config
@@ -403,7 +408,11 @@ class IntelligentTaskController:
     def merge_config(self, default: Dict, user: Dict) -> Dict:
         """Deep merge configurations"""
         for key, value in user.items():
-            if key in default and isinstance(default[key], dict) and isinstance(value, dict):
+            if (
+                key in default
+                and isinstance(default[key], dict)
+                and isinstance(value, dict)
+            ):
                 default[key] = self.merge_config(default[key], value)
             else:
                 default[key] = value
@@ -413,15 +422,15 @@ class IntelligentTaskController:
         """Load current state"""
         state_file = Path.cwd() / ".llmstate.json"
         default_state = {
-            'current_task': None,
-            'session_start': time.time(),
-            'intelligence_insights': [],
-            'auto_suggestions': []
+            "current_task": None,
+            "session_start": time.time(),
+            "intelligence_insights": [],
+            "auto_suggestions": [],
         }
 
         if state_file.exists():
             try:
-                with open(state_file, 'r') as f:
+                with open(state_file, "r") as f:
                     return {**default_state, **json.load(f)}
             except:
                 pass
@@ -430,7 +439,7 @@ class IntelligentTaskController:
 
     def save_state(self):
         """Save current state"""
-        with open(Path.cwd() / ".llmstate.json", 'w') as f:
+        with open(Path.cwd() / ".llmstate.json", "w") as f:
             json.dump(self.state, f, indent=2, default=str)
 
     def get_smart_todo_analysis(self) -> Dict:
@@ -443,27 +452,31 @@ class IntelligentTaskController:
             all_tasks.extend(tasks)
 
         analysis = {
-            'total_tasks': len(all_tasks),
-            'by_status': {},
-            'by_priority': {},
-            'by_category': {},
-            'insights': []
+            "total_tasks": len(all_tasks),
+            "by_status": {},
+            "by_priority": {},
+            "by_category": {},
+            "insights": [],
         }
 
         # Basic analysis
         for task in all_tasks:
-            status = task.get('status', 'unknown')
-            priority = task.get('priority', 'unknown')
-            category = task.get('category', 'unknown')
+            status = task.get("status", "unknown")
+            priority = task.get("priority", "unknown")
+            category = task.get("category", "unknown")
 
-            analysis['by_status'][status] = analysis['by_status'].get(status, 0) + 1
-            analysis['by_priority'][priority] = analysis['by_priority'].get(priority, 0) + 1
-            analysis['by_category'][category] = analysis['by_category'].get(category, 0) + 1
+            analysis["by_status"][status] = analysis["by_status"].get(status, 0) + 1
+            analysis["by_priority"][priority] = (
+                analysis["by_priority"].get(priority, 0) + 1
+            )
+            analysis["by_category"][category] = (
+                analysis["by_category"].get(category, 0) + 1
+            )
 
         # LLM-powered insights
         if self.llm.available and all_tasks:
             insights = self.get_llm_project_insights(all_tasks)
-            analysis['insights'] = insights
+            analysis["insights"] = insights
 
         return analysis
 
@@ -492,8 +505,8 @@ Provide insights as a JSON array of strings:
         if result:
             try:
                 json_str = result.strip()
-                if json_str.startswith('```'):
-                    json_str = '\n'.join(json_str.split('\n')[1:-1])
+                if json_str.startswith("```"):
+                    json_str = "\n".join(json_str.split("\n")[1:-1])
 
                 insights = json.loads(json_str)
                 if isinstance(insights, list):
@@ -506,9 +519,18 @@ Provide insights as a JSON array of strings:
     def find_todo_files(self) -> List[Path]:
         """Find all TODO-related files"""
         patterns = [
-            'TODO.md', 'TODO.txt', 'TODO.yaml', 'TODO.yml',
-            'todo.md', 'todo.txt', 'todo.yaml', 'todo.yml',
-            'TASKS.md', 'tasks.md', 'backlog.md', 'BACKLOG.md'
+            "TODO.md",
+            "TODO.txt",
+            "TODO.yaml",
+            "TODO.yml",
+            "todo.md",
+            "todo.txt",
+            "todo.yaml",
+            "todo.yml",
+            "TASKS.md",
+            "tasks.md",
+            "backlog.md",
+            "BACKLOG.md",
         ]
 
         found_files = []
@@ -522,8 +544,14 @@ Provide insights as a JSON array of strings:
     def find_changelog_files(self) -> List[Path]:
         """Find all changelog files"""
         patterns = [
-            'CHANGELOG.md', 'CHANGELOG.txt', 'changelog.md', 'changelog.txt',
-            'CHANGES.md', 'changes.md', 'HISTORY.md', 'history.md'
+            "CHANGELOG.md",
+            "CHANGELOG.txt",
+            "changelog.md",
+            "changelog.txt",
+            "CHANGES.md",
+            "changes.md",
+            "HISTORY.md",
+            "history.md",
         ]
 
         found_files = []
@@ -544,9 +572,9 @@ Provide insights as a JSON array of strings:
         project_files = list(Path.cwd().rglob("*.py"))[:10]  # Sample of files
 
         context = {
-            'todo_analysis': todo_analysis,
-            'project_files': [str(f) for f in project_files],
-            'current_time': datetime.now().isoformat()
+            "todo_analysis": todo_analysis,
+            "project_files": [str(f) for f in project_files],
+            "current_time": datetime.now().isoformat(),
         }
 
         system_prompt = """You are a smart project assistant. Based on the project state, suggest the most important next task.
@@ -575,8 +603,8 @@ Return only JSON, no explanations."""
         if result:
             try:
                 json_str = result.strip()
-                if json_str.startswith('```'):
-                    json_str = '\n'.join(json_str.split('\n')[1:-1])
+                if json_str.startswith("```"):
+                    json_str = "\n".join(json_str.split("\n")[1:-1])
 
                 suggestion = json.loads(json_str)
                 return suggestion
@@ -602,19 +630,19 @@ def main():
         print("=" * 40)
         print(f"📊 Total Tasks: {analysis['total_tasks']}")
 
-        if analysis['by_status']:
+        if analysis["by_status"]:
             print("\n📈 By Status:")
-            for status, count in analysis['by_status'].items():
+            for status, count in analysis["by_status"].items():
                 print(f"   {status}: {count}")
 
-        if analysis['by_priority']:
+        if analysis["by_priority"]:
             print("\n🎯 By Priority:")
-            for priority, count in analysis['by_priority'].items():
+            for priority, count in analysis["by_priority"].items():
                 print(f"   {priority}: {count}")
 
-        if analysis['insights']:
+        if analysis["insights"]:
             print("\n💡 AI Insights:")
-            for i, insight in enumerate(analysis['insights'], 1):
+            for i, insight in enumerate(analysis["insights"], 1):
                 print(f"   {i}. {insight}")
 
     elif command == "smart_suggest":
@@ -625,7 +653,7 @@ def main():
             print(f"💭 Reasoning: {suggestion.get('reasoning', 'N/A')}")
             print(f"⏱️ Estimated Time: {suggestion.get('estimated_time', 'N/A')}")
 
-            blockers = suggestion.get('potential_blockers', [])
+            blockers = suggestion.get("potential_blockers", [])
             if blockers:
                 print("⚠️ Potential Blockers:")
                 for blocker in blockers:
@@ -640,7 +668,7 @@ def main():
         print(f"📋 Parsed TODO from {file_path}:")
         for task in tasks:
             status_icon = {"pending": "⏳", "in_progress": "🔄", "completed": "✅"}
-            icon = status_icon.get(task['status'], "❓")
+            icon = status_icon.get(task["status"], "❓")
             print(f"{icon} #{task['id']} {task['title']}")
 
     elif command == "parse_changelog":
@@ -650,14 +678,16 @@ def main():
         print(f"📝 Parsed Changelog from {file_path}:")
         for entry in entries:
             print(f"📅 {entry['date']}")
-            for change in entry['entries']:
+            for change in entry["entries"]:
                 print(f"   - {change['type']}: {change['description']}")
 
     elif command == "test_llm":
         if controller.llm.available:
             print("🤖 Testing local LLM...")
-            result = controller.llm.query("List 3 programming best practices",
-                                          "You are a helpful coding assistant.")
+            result = controller.llm.query(
+                "List 3 programming best practices",
+                "You are a helpful coding assistant.",
+            )
             print(f"✅ Response: {result}")
         else:
             print("❌ Local LLM not available")

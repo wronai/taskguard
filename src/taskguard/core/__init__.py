@@ -6,12 +6,12 @@ for managing tasks and enforcing best practices.
 """
 
 from taskguard.core.controller import TaskController
-from taskguard.core.task import Task, TaskStatus
 from taskguard.core.project import Project
+from taskguard.core.task import Task, TaskStatus
 
 __all__ = [
-    'TaskController',
-    'Task',
-    'TaskStatus',
-    'Project',
+    "TaskController",
+    "Task",
+    "TaskStatus",
+    "Project",
 ]

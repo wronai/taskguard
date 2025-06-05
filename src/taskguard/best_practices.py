@@ -2,4 +2,3 @@
 """
 best_practices.py
 """
-

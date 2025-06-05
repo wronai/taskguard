@@ -7,23 +7,24 @@ Provides comprehensive command-line interface for task management,
 best practices enforcement, and LLM intelligence.
 """
 
-import sys
 import argparse
+import json
 import os
+import sys
 from pathlib import Path
 from typing import List, Optional
-import json
 
 # Import core TaskGuard components
 try:
-    from .taskguard import LLMTaskController
+    from . import __description__, __version__
     from .local_llm_interface import IntelligentTaskController
-    from . import __version__, __description__
+    from .taskguard import LLMTaskController
 except ImportError:
     # Fallback for development/standalone execution
     sys.path.insert(0, str(Path(__file__).parent))
-    from taskguard import LLMTaskController
     from local_llm_interface import IntelligentTaskController
+
+    from taskguard import LLMTaskController
 
     __version__ = "0.2.0-dev"
     __description__ = "LLM Task Controller"
@@ -66,38 +67,28 @@ Examples:
   taskguard status                 # Show system status
 
 For more information, visit: https://github.com/wronai/taskguard
-            """
+            """,
         )
 
         parser.add_argument(
-            "--version",
-            action="version",
-            version=f"TaskGuard {__version__}"
+            "--version", action="version", version=f"TaskGuard {__version__}"
         )
 
         parser.add_argument(
             "--config",
             type=str,
-            help="Path to configuration file (default: .llmcontrol.yaml)"
+            help="Path to configuration file (default: .llmcontrol.yaml)",
         )
 
         parser.add_argument(
-            "--verbose", "-v",
-            action="store_true",
-            help="Enable verbose output"
+            "--verbose", "-v", action="store_true", help="Enable verbose output"
         )
 
-        parser.add_argument(
-            "--debug",
-            action="store_true",
-            help="Enable debug mode"
-        )
+        parser.add_argument("--debug", action="store_true", help="Enable debug mode")
 
         # Create subparsers for different commands
         subparsers = parser.add_subparsers(
-            dest="command",
-            help="Available commands",
-            metavar="COMMAND"
+            dest="command", help="Available commands", metavar="COMMAND"
         )
 
         # Core task management commands
@@ -119,84 +110,63 @@ For more information, visit: https://github.com/wronai/taskguard
 
         # Initialize project
         init_parser = subparsers.add_parser(
-            "init",
-            help="Initialize TaskGuard in current directory"
+            "init", help="Initialize TaskGuard in current directory"
         )
         init_parser.add_argument(
             "--template",
             choices=["basic", "python", "javascript", "enterprise"],
             default="basic",
-            help="Project template to use"
+            help="Project template to use",
         )
 
         # Show tasks
         subparsers.add_parser(
-            "show-tasks",
-            aliases=["tasks", "list"],
-            help="Show current tasks"
+            "show-tasks", aliases=["tasks", "list"], help="Show current tasks"
         )
 
         # Start task
         start_parser = subparsers.add_parser(
-            "start-task",
-            aliases=["start"],
-            help="Start working on a specific task"
+            "start-task", aliases=["start"], help="Start working on a specific task"
         )
-        start_parser.add_argument(
-            "task_id",
-            type=int,
-            help="ID of task to start"
-        )
+        start_parser.add_argument("task_id", type=int, help="ID of task to start")
 
         # Complete task
         complete_parser = subparsers.add_parser(
             "complete-task",
             aliases=["complete", "done"],
-            help="Mark current task as completed"
+            help="Mark current task as completed",
         )
         complete_parser.add_argument(
-            "--changes",
-            nargs="*",
-            help="List of changes made"
+            "--changes", nargs="*", help="List of changes made"
         )
 
         # Add task
         add_parser = subparsers.add_parser(
-            "add-task",
-            aliases=["add"],
-            help="Add a new task"
+            "add-task", aliases=["add"], help="Add a new task"
         )
         add_parser.add_argument("title", help="Task title")
         add_parser.add_argument(
             "--category",
             choices=["feature", "bugfix", "refactor", "test", "docs"],
             default="feature",
-            help="Task category"
+            help="Task category",
         )
         add_parser.add_argument(
             "--priority",
             choices=["high", "medium", "low"],
             default="medium",
-            help="Task priority"
+            help="Task priority",
         )
-        add_parser.add_argument(
-            "--estimate",
-            type=float,
-            help="Estimated hours"
-        )
+        add_parser.add_argument("--estimate", type=float, help="Estimated hours")
 
         # Focus status
         subparsers.add_parser(
-            "focus-status",
-            aliases=["focus"],
-            help="Show current focus metrics"
+            "focus-status", aliases=["focus"], help="Show current focus metrics"
         )
 
         # Productivity metrics
         subparsers.add_parser(
-            "productivity",
-            aliases=["metrics"],
-            help="Show productivity analytics"
+            "productivity", aliases=["metrics"], help="Show productivity analytics"
         )
 
     def _add_intelligence_commands(self, subparsers):
@@ -206,95 +176,71 @@ For more information, visit: https://github.com/wronai/taskguard
         subparsers.add_parser(
             "smart-analysis",
             aliases=["analyze", "insights"],
-            help="AI-powered project analysis"
+            help="AI-powered project analysis",
         )
 
         # Smart suggestions
         subparsers.add_parser(
-            "smart-suggest",
-            aliases=["suggest"],
-            help="Get AI task recommendations"
+            "smart-suggest", aliases=["suggest"], help="Get AI task recommendations"
         )
 
         # Parse documents
         parse_parser = subparsers.add_parser(
-            "parse",
-            help="Parse TODO or changelog files"
+            "parse", help="Parse TODO or changelog files"
         )
         parse_parser.add_argument(
-            "file_type",
-            choices=["todo", "changelog"],
-            help="Type of file to parse"
+            "file_type", choices=["todo", "changelog"], help="Type of file to parse"
         )
         parse_parser.add_argument(
-            "file_path",
-            nargs="?",
-            help="Path to file (default: auto-detect)"
+            "file_path", nargs="?", help="Path to file (default: auto-detect)"
         )
 
         # Best practices check
         bp_parser = subparsers.add_parser(
             "best-practices",
             aliases=["bp", "check"],
-            help="Check best practices compliance"
+            help="Check best practices compliance",
         )
         bp_parser.add_argument(
             "file_path",
             nargs="?",
-            help="File to check (default: show available practices)"
+            help="File to check (default: show available practices)",
         )
 
         # Test LLM connection
-        subparsers.add_parser(
-            "test-llm",
-            help="Test local LLM connection"
-        )
+        subparsers.add_parser("test-llm", help="Test local LLM connection")
 
     def _add_config_commands(self, subparsers):
         """Add configuration commands."""
 
         # Show configuration
         config_parser = subparsers.add_parser(
-            "config",
-            help="Show or edit configuration"
+            "config", help="Show or edit configuration"
         )
         config_parser.add_argument(
-            "--edit",
-            action="store_true",
-            help="Edit configuration file"
+            "--edit", action="store_true", help="Edit configuration file"
         )
         config_parser.add_argument(
             "--template",
             choices=["startup", "enterprise", "learning"],
-            help="Apply configuration template"
+            help="Apply configuration template",
         )
 
         # Setup commands
-        setup_parser = subparsers.add_parser(
-            "setup",
-            help="Setup TaskGuard components"
-        )
+        setup_parser = subparsers.add_parser("setup", help="Setup TaskGuard components")
         setup_parser.add_argument(
             "component",
             choices=["ollama", "shell", "monitoring", "team"],
-            help="Component to setup"
+            help="Component to setup",
         )
 
         # Status
-        subparsers.add_parser(
-            "status",
-            help="Show system status"
-        )
+        subparsers.add_parser("status", help="Show system status")
 
         # Health check
-        health_parser = subparsers.add_parser(
-            "health",
-            help="Run project health check"
-        )
+        health_parser = subparsers.add_parser("health", help="Run project health check")
         health_parser.add_argument(
-            "--full",
-            action="store_true",
-            help="Run comprehensive health check"
+            "--full", action="store_true", help="Run comprehensive health check"
         )
 
     def _add_utility_commands(self, subparsers):
@@ -302,40 +248,27 @@ For more information, visit: https://github.com/wronai/taskguard
 
         # Execute command safely
         exec_parser = subparsers.add_parser(
-            "exec",
-            help="Execute command with safety checks"
+            "exec", help="Execute command with safety checks"
         )
-        exec_parser.add_argument(
-            "command",
-            nargs="+",
-            help="Command to execute"
-        )
+        exec_parser.add_argument("command", nargs="+", help="Command to execute")
 
         # Backup
-        backup_parser = subparsers.add_parser(
-            "backup",
-            help="Create project backup"
-        )
+        backup_parser = subparsers.add_parser("backup", help="Create project backup")
         backup_parser.add_argument(
-            "--name",
-            help="Backup name (default: auto-generated)"
+            "--name", help="Backup name (default: auto-generated)"
         )
 
         # Rollback
         rollback_parser = subparsers.add_parser(
-            "rollback",
-            help="Rollback to previous state"
+            "rollback", help="Rollback to previous state"
         )
         rollback_parser.add_argument(
-            "--backup",
-            help="Specific backup to restore (default: latest)"
+            "--backup", help="Specific backup to restore (default: latest)"
         )
 
         # System info
         subparsers.add_parser(
-            "info",
-            aliases=["version"],
-            help="Show system information"
+            "info", aliases=["version"], help="Show system information"
         )
 
     def run(self, args: Optional[List[str]] = None) -> int:
@@ -437,9 +370,9 @@ For more information, visit: https://github.com/wronai/taskguard
                         "python": {
                             "enforce_docstrings": True,
                             "enforce_type_hints": True,
-                            "require_tests": True
+                            "require_tests": True,
                         }
-                    }
+                    },
                 },
                 "javascript": {
                     "focus": {"max_files_per_task": 3},
@@ -447,14 +380,14 @@ For more information, visit: https://github.com/wronai/taskguard
                         "javascript": {
                             "enforce_jsdoc": True,
                             "prefer_const": True,
-                            "require_error_handling": True
+                            "require_error_handling": True,
                         }
-                    }
+                    },
                 },
                 "enterprise": {
                     "focus": {"max_files_per_task": 1, "task_timeout_minutes": 45},
-                    "quality_gates": {"test_coverage": 90, "security_scan": True}
-                }
+                    "quality_gates": {"test_coverage": 90, "security_scan": True},
+                },
             }
 
             config = template_configs.get(args.template, template_configs["basic"])
@@ -462,7 +395,8 @@ For more information, visit: https://github.com/wronai/taskguard
             # Save configuration
             config_file = Path.cwd() / ".llmcontrol.yaml"
             import yaml
-            with open(config_file, 'w') as f:
+
+            with open(config_file, "w") as f:
                 yaml.dump(config, f, default_flow_style=False, indent=2)
 
             print(f"✅ Created configuration: {config_file}")
@@ -494,23 +428,24 @@ For more information, visit: https://github.com/wronai/taskguard
         current = self.controller.get_current_task()
         if current:
             print(f"🎯 ACTIVE: #{current['id']} {current['title']}")
-            if self.controller.state.get('task_start_time'):
+            if self.controller.state.get("task_start_time"):
                 import time
-                duration = time.time() - self.controller.state['task_start_time']
+
+                duration = time.time() - self.controller.state["task_start_time"]
                 print(f"   ⏱️ Working for: {int(duration // 60)}m {int(duration % 60)}s")
             print()
 
         for task in self.controller.todo:
             status_icon = {"pending": "⏳", "in_progress": "🔄", "completed": "✅"}
-            icon = status_icon.get(task['status'], "❓")
+            icon = status_icon.get(task["status"], "❓")
             priority_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}
-            p_icon = priority_icon.get(task.get('priority', 'low'), "⚪")
+            p_icon = priority_icon.get(task.get("priority", "low"), "⚪")
 
             print(f"{icon} #{task['id']} {p_icon} [{task['category']}] {task['title']}")
-            if task.get('description'):
+            if task.get("description"):
                 print(f"    📝 {task['description']}")
 
-        pending = [t for t in self.controller.todo if t['status'] == 'pending']
+        pending = [t for t in self.controller.todo if t["status"] == "pending"]
         if pending and not current:
             next_task = pending[0]
             print(f"\n💡 Suggested next: taskguard start-task {next_task['id']}")
@@ -532,7 +467,7 @@ For more information, visit: https://github.com/wronai/taskguard
             print("❌ Controller not available")
             return 1
 
-        changes = args.changes if hasattr(args, 'changes') else None
+        changes = args.changes if hasattr(args, "changes") else None
         success = self.controller.complete_task(changes)
         return 0 if success else 1
 
@@ -542,18 +477,18 @@ For more information, visit: https://github.com/wronai/taskguard
             print("❌ Controller not available")
             return 1
 
-        new_id = max((t['id'] for t in self.controller.todo), default=0) + 1
+        new_id = max((t["id"] for t in self.controller.todo), default=0) + 1
         new_task = {
-            'id': new_id,
-            'title': args.title,
-            'category': args.category,
-            'priority': args.priority,
-            'status': 'pending',
-            'created_at': time.strftime('%Y-%m-%d %H:%M:%S')
+            "id": new_id,
+            "title": args.title,
+            "category": args.category,
+            "priority": args.priority,
+            "status": "pending",
+            "created_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         }
 
-        if hasattr(args, 'estimate') and args.estimate:
-            new_task['estimated_hours'] = args.estimate
+        if hasattr(args, "estimate") and args.estimate:
+            new_task["estimated_hours"] = args.estimate
 
         self.controller.todo.append(new_task)
         self.controller.save_todo()
@@ -571,13 +506,18 @@ For more information, visit: https://github.com/wronai/taskguard
         print("🎯 Focus Status:")
         print(f"Current Task: {current['title'] if current else 'None'}")
         print(f"Focus Score: {self.controller.state.get('focus_score', 100)}/100")
-        print(f"Files Modified Today: {len(self.controller.state.get('files_modified_today', []))}")
-        print(f"Best Practice Violations: {self.controller.state.get('best_practice_violations', 0)}")
+        print(
+            f"Files Modified Today: {len(self.controller.state.get('files_modified_today', []))}"
+        )
+        print(
+            f"Best Practice Violations: {self.controller.state.get('best_practice_violations', 0)}"
+        )
 
-        if self.controller.state.get('task_start_time'):
+        if self.controller.state.get("task_start_time"):
             import time
-            duration = time.time() - self.controller.state['task_start_time']
-            timeout = self.controller.config['focus']['task_timeout_minutes'] * 60
+
+            duration = time.time() - self.controller.state["task_start_time"]
+            timeout = self.controller.config["focus"]["task_timeout_minutes"] * 60
             remaining = max(0, timeout - duration)
             print(f"Time Remaining: {int(remaining // 60)}m {int(remaining % 60)}s")
 
@@ -589,18 +529,25 @@ For more information, visit: https://github.com/wronai/taskguard
             print("❌ Controller not available")
             return 1
 
-        metrics = self.controller.state.get('productivity_metrics', {})
+        metrics = self.controller.state.get("productivity_metrics", {})
         import time
-        session_time = time.time() - self.controller.state.get('session_start', time.time())
+
+        session_time = time.time() - self.controller.state.get(
+            "session_start", time.time()
+        )
 
         print("📊 Productivity Metrics:")
         print(f"Tasks Completed: {metrics.get('tasks_completed', 0)}")
         print(f"Files Created: {metrics.get('files_created', 0)}")
         print(f"Lines Written: {metrics.get('lines_written', 0)}")
 
-        time_focused = metrics.get('time_focused', 0)
-        print(f"Time Focused: {int(time_focused // 3600)}h {int((time_focused % 3600) // 60)}m")
-        print(f"Session Time: {int(session_time // 3600)}h {int((session_time % 3600) // 60)}m")
+        time_focused = metrics.get("time_focused", 0)
+        print(
+            f"Time Focused: {int(time_focused // 3600)}h {int((time_focused % 3600) // 60)}m"
+        )
+        print(
+            f"Session Time: {int(session_time // 3600)}h {int((session_time % 3600) // 60)}m"
+        )
 
         if session_time > 0:
             efficiency = (time_focused / session_time) * 100
@@ -621,19 +568,19 @@ For more information, visit: https://github.com/wronai/taskguard
         print("=" * 40)
         print(f"📊 Total Tasks: {analysis['total_tasks']}")
 
-        if analysis['by_status']:
+        if analysis["by_status"]:
             print("\n📈 By Status:")
-            for status, count in analysis['by_status'].items():
+            for status, count in analysis["by_status"].items():
                 print(f"   {status}: {count}")
 
-        if analysis['by_priority']:
+        if analysis["by_priority"]:
             print("\n🎯 By Priority:")
-            for priority, count in analysis['by_priority'].items():
+            for priority, count in analysis["by_priority"].items():
                 print(f"   {priority}: {count}")
 
-        if analysis['insights']:
+        if analysis["insights"]:
             print("\n💡 AI Insights:")
-            for i, insight in enumerate(analysis['insights'], 1):
+            for i, insight in enumerate(analysis["insights"], 1):
                 print(f"   {i}. {insight}")
 
         return 0
@@ -651,7 +598,7 @@ For more information, visit: https://github.com/wronai/taskguard
             print(f"💭 Reasoning: {suggestion.get('reasoning', 'N/A')}")
             print(f"⏱️ Estimated Time: {suggestion.get('estimated_time', 'N/A')}")
 
-            blockers = suggestion.get('potential_blockers', [])
+            blockers = suggestion.get("potential_blockers", [])
             if blockers:
                 print("⚠️ Potential Blockers:")
                 for blocker in blockers:
@@ -674,7 +621,7 @@ For more information, visit: https://github.com/wronai/taskguard
             print(f"📋 Parsed TODO from {file_path}:")
             for task in tasks:
                 status_icon = {"pending": "⏳", "in_progress": "🔄", "completed": "✅"}
-                icon = status_icon.get(task['status'], "❓")
+                icon = status_icon.get(task["status"], "❓")
                 print(f"{icon} #{task['id']} {task['title']}")
 
         elif args.file_type == "changelog":
@@ -684,7 +631,7 @@ For more information, visit: https://github.com/wronai/taskguard
             print(f"📝 Parsed Changelog from {file_path}:")
             for entry in entries:
                 print(f"📅 {entry['date']}")
-                for change in entry['entries']:
+                for change in entry["entries"]:
                     print(f"   - {change['type']}: {change['description']}")
 
         return 0
@@ -695,7 +642,7 @@ For more information, visit: https://github.com/wronai/taskguard
             print("❌ Controller not available")
             return 1
 
-        if hasattr(args, 'file_path') and args.file_path:
+        if hasattr(args, "file_path") and args.file_path:
             violations = self.controller.check_best_practices(args.file_path)
             if violations:
                 print(f"📋 Best Practice Review for {args.file_path}:")
@@ -705,7 +652,7 @@ For more information, visit: https://github.com/wronai/taskguard
                 print(f"✅ {args.file_path} follows all best practices!")
         else:
             print("📋 Available Best Practices:")
-            for lang, practices in self.controller.config['best_practices'].items():
+            for lang, practices in self.controller.config["best_practices"].items():
                 print(f"\n{lang.title()}:")
                 for practice, enabled in practices.items():
                     status = "✅" if enabled else "❌"
@@ -723,7 +670,7 @@ For more information, visit: https://github.com/wronai/taskguard
             print("🤖 Testing local LLM...")
             result = self.intelligent_controller.llm.query(
                 "List 3 programming best practices",
-                "You are a helpful coding assistant."
+                "You are a helpful coding assistant.",
             )
             print(f"✅ Response: {result}")
             return 0
@@ -739,40 +686,44 @@ For more information, visit: https://github.com/wronai/taskguard
         """Show or edit configuration."""
         config_file = Path.cwd() / ".llmcontrol.yaml"
 
-        if hasattr(args, 'edit') and args.edit:
+        if hasattr(args, "edit") and args.edit:
             import subprocess
+
             editor = os.environ.get("EDITOR", "nano")
             subprocess.run([editor, str(config_file)])
             return 0
 
-        if hasattr(args, 'template') and args.template:
+        if hasattr(args, "template") and args.template:
             # Apply template configuration
             templates = {
                 "startup": {
                     "focus": {"max_files_per_task": 5, "task_timeout_minutes": 60},
-                    "best_practices": {"python": {"enforce_docstrings": False}}
+                    "best_practices": {"python": {"enforce_docstrings": False}},
                 },
                 "enterprise": {
                     "focus": {"max_files_per_task": 2, "require_code_review": True},
-                    "quality_gates": {"security_scan": True, "test_coverage": 90}
+                    "quality_gates": {"security_scan": True, "test_coverage": 90},
                 },
                 "learning": {
                     "focus": {"max_files_per_task": 1, "educational_hints": True},
-                    "best_practices": {"explain_violations": True}
-                }
+                    "best_practices": {"explain_violations": True},
+                },
             }
 
             if args.template in templates:
                 import yaml
-                with open(config_file, 'w') as f:
-                    yaml.dump(templates[args.template], f, default_flow_style=False, indent=2)
+
+                with open(config_file, "w") as f:
+                    yaml.dump(
+                        templates[args.template], f, default_flow_style=False, indent=2
+                    )
                 print(f"✅ Applied {args.template} template to {config_file}")
                 return 0
 
         # Show current configuration
         if config_file.exists():
             print(f"📝 Configuration file: {config_file}")
-            with open(config_file, 'r') as f:
+            with open(config_file, "r") as f:
                 print(f.read())
         else:
             print("❌ No configuration file found")
@@ -822,12 +773,13 @@ For more information, visit: https://github.com/wronai/taskguard
                 "thresholds": {
                     "focus_score_min": 70,
                     "health_score_min": 80,
-                    "max_violations_per_session": 5
-                }
+                    "max_violations_per_session": 5,
+                },
             }
 
-            with open(".llmmonitoring.yaml", 'w') as f:
+            with open(".llmmonitoring.yaml", "w") as f:
                 import yaml
+
                 yaml.dump(monitoring_config, f, default_flow_style=False, indent=2)
 
             print("✅ Monitoring configuration created: .llmmonitoring.yaml")
@@ -843,22 +795,23 @@ For more information, visit: https://github.com/wronai/taskguard
                     "shared_practices": True,
                     "team_dashboard": True,
                     "code_review_required": True,
-                    "shared_todo": False
+                    "shared_todo": False,
                 },
                 "collaboration": {
                     "task_assignment": True,
                     "progress_sharing": True,
-                    "best_practice_sync": True
+                    "best_practice_sync": True,
                 },
                 "notifications": {
                     "task_completion": True,
                     "quality_issues": True,
-                    "team_insights": True
-                }
+                    "team_insights": True,
+                },
             }
 
-            with open(".llmteam.yaml", 'w') as f:
+            with open(".llmteam.yaml", "w") as f:
                 import yaml
+
                 yaml.dump(team_config, f, default_flow_style=False, indent=2)
 
             print("✅ Team configuration created: .llmteam.yaml")
@@ -880,8 +833,8 @@ For more information, visit: https://github.com/wronai/taskguard
         print("=" * 30)
 
         # Basic status
-        health_score = self.controller.state.get('health_score', 100)
-        commands_blocked = self.controller.state.get('commands_blocked', 0)
+        health_score = self.controller.state.get("health_score", 100)
+        commands_blocked = self.controller.state.get("commands_blocked", 0)
 
         if health_score >= 80:
             print(f"Health Score: {health_score}/100 ✅")
@@ -894,7 +847,9 @@ For more information, visit: https://github.com/wronai/taskguard
 
         # LLM status
         if self.intelligent_controller and self.intelligent_controller.llm.available:
-            print(f"🤖 Local LLM: ✅ Connected ({self.intelligent_controller.llm.model})")
+            print(
+                f"🤖 Local LLM: ✅ Connected ({self.intelligent_controller.llm.model})"
+            )
         else:
             print("🤖 Local LLM: ❌ Unavailable")
 
@@ -924,8 +879,12 @@ For more information, visit: https://github.com/wronai/taskguard
             for py_file in py_files:
                 try:
                     import subprocess
-                    subprocess.run(["python", "-m", "py_compile", str(py_file)],
-                                   check=True, capture_output=True)
+
+                    subprocess.run(
+                        ["python", "-m", "py_compile", str(py_file)],
+                        check=True,
+                        capture_output=True,
+                    )
                 except subprocess.CalledProcessError:
                     print(f"❌ Syntax error: {py_file}")
                     issues += 1
@@ -934,7 +893,7 @@ For more information, visit: https://github.com/wronai/taskguard
         if Path("package.json").exists():
             print("📦 Checking Node.js project...")
             try:
-                with open("package.json", 'r') as f:
+                with open("package.json", "r") as f:
                     json.load(f)
                 print("✅ Valid package.json")
             except json.JSONDecodeError:
@@ -945,9 +904,18 @@ For more information, visit: https://github.com/wronai/taskguard
         if Path(".git").exists():
             try:
                 import subprocess
-                result = subprocess.run(["git", "status", "--porcelain"],
-                                        capture_output=True, text=True, check=True)
-                changed_files = len(result.stdout.strip().split('\n')) if result.stdout.strip() else 0
+
+                result = subprocess.run(
+                    ["git", "status", "--porcelain"],
+                    capture_output=True,
+                    text=True,
+                    check=True,
+                )
+                changed_files = (
+                    len(result.stdout.strip().split("\n"))
+                    if result.stdout.strip()
+                    else 0
+                )
                 if changed_files > 10:
                     print(f"⚠️ Many files changed: {changed_files}")
                 else:
@@ -977,15 +945,22 @@ For more information, visit: https://github.com/wronai/taskguard
 
         try:
             import time
-            backup_name = args.name if hasattr(args, 'name') and args.name else f"backup_{int(time.time())}"
+
+            backup_name = (
+                args.name
+                if hasattr(args, "name") and args.name
+                else f"backup_{int(time.time())}"
+            )
 
             # Simple backup using git or file copy
             if Path(".git").exists():
                 import subprocess
+
                 subprocess.run(["git", "add", "."], check=False)
                 result = subprocess.run(
                     ["git", "commit", "-m", f"TaskGuard backup: {backup_name}"],
-                    capture_output=True, text=True
+                    capture_output=True,
+                    text=True,
                 )
                 if result.returncode == 0:
                     print(f"✅ Git backup created: {backup_name}")
@@ -996,13 +971,17 @@ For more information, visit: https://github.com/wronai/taskguard
             backup_dir.mkdir(parents=True, exist_ok=True)
 
             import shutil
+
             for item in Path.cwd().iterdir():
-                if item.name not in ['.git', '__pycache__', 'node_modules']:
+                if item.name not in [".git", "__pycache__", "node_modules"]:
                     if item.is_file():
                         shutil.copy2(item, backup_dir)
                     elif item.is_dir():
-                        shutil.copytree(item, backup_dir / item.name,
-                                        ignore=shutil.ignore_patterns('*.pyc', '__pycache__'))
+                        shutil.copytree(
+                            item,
+                            backup_dir / item.name,
+                            ignore=shutil.ignore_patterns("*.pyc", "__pycache__"),
+                        )
 
             print(f"✅ File backup created: {backup_dir}")
             return 0
@@ -1018,9 +997,11 @@ For more information, visit: https://github.com/wronai/taskguard
         try:
             if Path(".git").exists():
                 import subprocess
-                result = subprocess.run(["git", "log", "--oneline", "-5"],
-                                        capture_output=True, text=True)
-                commits = result.stdout.strip().split('\n')
+
+                result = subprocess.run(
+                    ["git", "log", "--oneline", "-5"], capture_output=True, text=True
+                )
+                commits = result.stdout.strip().split("\n")
 
                 backup_commits = [c for c in commits if "TaskGuard backup" in c]
                 if backup_commits:
@@ -1041,8 +1022,8 @@ For more information, visit: https://github.com/wronai/taskguard
 
     def _cmd_info(self, args) -> int:
         """Show system information."""
-        import sys
         import platform
+        import sys
 
         print("🧠 TaskGuard System Information")
         print("=" * 35)
@@ -1055,12 +1036,14 @@ For more information, visit: https://github.com/wronai/taskguard
         features = {}
         try:
             import yaml
+
             features["YAML Support"] = "✅"
         except ImportError:
             features["YAML Support"] = "❌"
 
         try:
             import requests
+
             features["HTTP Requests"] = "✅"
         except ImportError:
             features["HTTP Requests"] = "❌"
@@ -1071,7 +1054,11 @@ For more information, visit: https://github.com/wronai/taskguard
 
         # LLM status
         if self.intelligent_controller:
-            llm_status = "✅ Connected" if self.intelligent_controller.llm.available else "❌ Unavailable"
+            llm_status = (
+                "✅ Connected"
+                if self.intelligent_controller.llm.available
+                else "❌ Unavailable"
+            )
             print(f"\n🤖 Local LLM: {llm_status}")
             if self.intelligent_controller.llm.available:
                 print(f"   Provider: {self.intelligent_controller.llm.provider}")

@@ -26,10 +26,11 @@ __email__ = "info@softreck.dev"
 __license__ = "Apache-2.0"
 __description__ = "🧠 LLM Task Controller with Local AI Intelligence"
 
+from .cli import main as cli_main
+from .local_llm_interface import IntelligentDocumentParser, LocalLLMInterface
+
 # Core imports
 from .taskguard import LLMTaskController as TaskController
-from .local_llm_interface import LocalLLMInterface, IntelligentDocumentParser
-from .cli import main as cli_main
 
 # Version info
 VERSION_INFO = {
@@ -37,7 +38,7 @@ VERSION_INFO = {
     "minor": 2,
     "patch": 0,
     "release": "beta",
-    "build": "20241205"
+    "build": "20241205",
 }
 
 # Feature flags
@@ -85,7 +86,7 @@ DEFAULT_CONFIG = {
             "enforce_type_hints": True,
             "max_function_length": 50,
         }
-    }
+    },
 }
 
 # Public API
@@ -94,17 +95,14 @@ __all__ = [
     "TaskController",
     "LocalLLMInterface",
     "IntelligentDocumentParser",
-
     # CLI
     "cli_main",
-
     # Metadata
     "__version__",
     "__author__",
     "__email__",
     "__license__",
     "__description__",
-
     # Configuration
     "VERSION_INFO",
     "FEATURES",
@@ -131,12 +129,14 @@ def check_features() -> dict:
     # Check for optional dependencies
     try:
         import requests
+
         available_features["http_requests"] = True
     except ImportError:
         available_features["http_requests"] = False
 
     try:
         import yaml
+
         available_features["yaml_support"] = True
     except ImportError:
         available_features["yaml_support"] = False
@@ -178,8 +178,8 @@ def quick_start():
 
 def system_info():
     """Display system and package information."""
-    import sys
     import platform
+    import sys
 
     print("🧠 TaskGuard System Information")
     print("=" * 35)
@@ -202,43 +202,50 @@ def system_info():
 # Error classes
 class TaskGuardError(Exception):
     """Base exception for TaskGuard."""
+
     pass
 
 
 class ConfigurationError(TaskGuardError):
     """Configuration-related errors."""
+
     pass
 
 
 class LLMConnectionError(TaskGuardError):
     """LLM connection errors."""
+
     pass
 
 
 class DocumentParsingError(TaskGuardError):
     """Document parsing errors."""
+
     pass
 
 
 class BestPracticeViolation(TaskGuardError):
     """Best practice violations."""
+
     pass
 
 
 # Add error classes to public API
-__all__.extend([
-    "TaskGuardError",
-    "ConfigurationError",
-    "LLMConnectionError",
-    "DocumentParsingError",
-    "BestPracticeViolation",
-    "quick_start",
-    "system_info",
-    "get_version",
-    "get_version_info",
-    "check_features",
-    "create_controller",
-])
+__all__.extend(
+    [
+        "TaskGuardError",
+        "ConfigurationError",
+        "LLMConnectionError",
+        "DocumentParsingError",
+        "BestPracticeViolation",
+        "quick_start",
+        "system_info",
+        "get_version",
+        "get_version_info",
+        "check_features",
+        "create_controller",
+    ]
+)
 
 # Development mode checks
 if __name__ == "__main__":

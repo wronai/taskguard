@@ -392,7 +392,7 @@ fi
             shell_content = self.generate_shell_functions()
 
             # Write to file
-            with open(self.shell_file, 'w') as f:
+            with open(self.shell_file, "w") as f:
                 f.write(shell_content)
 
             # Make executable
@@ -422,14 +422,14 @@ fi
 
         # Check if already added
         if profile_file.exists():
-            with open(profile_file, 'r') as f:
+            with open(profile_file, "r") as f:
                 if source_line in f.read():
                     print(f"✅ Already added to {profile_file}")
                     return True
 
         # Add to profile
         try:
-            with open(profile_file, 'a') as f:
+            with open(profile_file, "a") as f:
                 f.write(f"\n# TaskGuard Shell Integration\n")
                 f.write(f"{source_line}\n")
 
@@ -451,7 +451,9 @@ fi
                 print("ℹ️ Shell integration file not found")
 
             # TODO: Remove from shell profiles
-            print("💡 You may want to remove the source line from ~/.bashrc or ~/.zshrc")
+            print(
+                "💡 You may want to remove the source line from ~/.bashrc or ~/.zshrc"
+            )
 
             return True
 
@@ -467,6 +469,7 @@ fi
 
         # Test if TaskGuard command is available
         import shutil
+
         if not shutil.which(self.taskguard_cmd.split()[0]):
             print(f"❌ TaskGuard command not found: {self.taskguard_cmd}")
             return False
@@ -486,8 +489,12 @@ def main():
     parser = argparse.ArgumentParser(description="TaskGuard Shell Integration")
     parser.add_argument("--setup", action="store_true", help="Setup shell integration")
     parser.add_argument("--force", action="store_true", help="Force regenerate")
-    parser.add_argument("--add-to-profile", choices=["bash", "zsh"], help="Add to shell profile")
-    parser.add_argument("--remove", action="store_true", help="Remove shell integration")
+    parser.add_argument(
+        "--add-to-profile", choices=["bash", "zsh"], help="Add to shell profile"
+    )
+    parser.add_argument(
+        "--remove", action="store_true", help="Remove shell integration"
+    )
     parser.add_argument("--test", action="store_true", help="Test shell integration")
 
     args = parser.parse_args()
