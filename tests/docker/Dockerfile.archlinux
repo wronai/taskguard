@@ -1,5 +1,11 @@
 FROM archlinux:latest
 
+# Set locale and encoding
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+ENV PYTHONIOENCODING=utf-8
+ENV PYTHONUNBUFFERED=1
+
 # Update system and install common dependencies
 RUN pacman -Syu --noconfirm && \
     pacman -S --noconfirm \
@@ -10,6 +16,9 @@ RUN pacman -Syu --noconfirm && \
     wget \
     vim \
     sudo \
+    glibc \
+    && echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen \
+    && locale-gen \
     && pacman -Scc --noconfirm
 
 # Create a non-root user

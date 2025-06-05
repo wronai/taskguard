@@ -1,5 +1,11 @@
 FROM alpine:3.17
 
+# Set locale and encoding
+ENV LANG en_US.UTF-8
+ENV LC_ALL en_US.UTF-8
+ENV PYTHONIOENCODING=utf-8
+ENV PYTHONUNBUFFERED=1
+
 # Install common dependencies
 RUN apk add --no-cache \
     python3 \
@@ -9,7 +15,11 @@ RUN apk add --no-cache \
     wget \
     vim \
     sudo \
-    bash
+    bash \
+    musl-locales \
+    musl-locales-lang \
+    && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
+    && locale-gen
 
 # Create a non-root user
 RUN adduser -D -s /bin/bash tester && \
