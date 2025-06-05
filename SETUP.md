@@ -1,4 +1,353 @@
-# 🧠 Local LLM Integration - Setup Guide
+# 🔧 TaskGuard Project Fixes
+
+## 🐛 **Identified Problems:**
+
+1. **Makefile Issues:**
+   - Duplicate `help` target (warning)
+   - Assumes Poetry instead of pip
+   - Wrong module path for execution
+   - Missing proper src/ structure support
+
+2. **Module Import Issues:**
+   - `ModuleNotFoundError: No module named 'taskguard'`
+   - Installed in user space but not in development mode
+   - Wrong execution path in Makefile
+
+## ✅ **Solutions:**
+
+### 1. **Fix Development Installation**
+```bash
+# Remove current installation
+pip uninstall taskguard
+
+# Install in development mode from project root
+pip install -e .
+
+# Or with all features
+pip install -e ".[all]"
+```
+
+### 2. **Use Fixed Makefile**
+The new Makefile:
+- ✅ Removes duplicate targets
+- ✅ Uses pip instead of Poetry
+- ✅ Correct src/ structure paths
+- ✅ Proper module execution
+- ✅ Development-friendly commands
+
+### 3. **Quick Fix Commands**
+```bash
+# Fix current setup
+make clean
+make install-dev
+make setup-shell
+source ~/.llmtask_shell.sh
+
+# Test everything works
+make status
+make tasks
+make test-llm
+```
+
+## 🚀 **New Makefile Features:**
+
+### **Development Workflow:**
+```bash
+make dev-setup          # Complete dev environment
+make dev                # Quick dev cycle (format + test)
+make pre-commit         # Ready for commit
+```
+
+### **TaskGuard Integration:**
+```bash
+make init               # Initialize TaskGuard project
+make setup-shell        # Setup shell integration
+make setup-ollama       # Setup AI features
+make status             # Show TaskGuard status
+make tasks              # Show current tasks
+make analyze            # Run AI analysis
+```
+
+### **Quality Assurance:**
+```bash
+make check              # Run all checks
+make test-all           # Full test suite
+make security-check     # Security scanning
+make prepare-release    # Release preparation
+```
+
+### **Development Tools:**
+```bash
+make format             # Code formatting
+make lint               # Code linting
+make type-check         # Type checking
+make clean              # Clean artifacts
+make nuke               # Nuclear clean (emergency)
+```
+
+## 🎯 **Usage Examples:**
+
+### **First Time Setup:**
+```bash
+# Clone and setup development environment
+git clone https://github.com/wronai/taskguard.git
+cd taskguard
+make dev-setup
+source ~/.llmtask_shell.sh
+```
+
+### **Daily Development:**
+```bash
+# Start work session
+make status
+make tasks
+
+# Development cycle
+# ... edit code ...
+make dev                # Format + test
+make pre-commit         # Ready for commit
+git commit -m "Feature: ..."
+```
+
+### **Testing & Quality:**
+```bash
+# Run comprehensive checks
+make test-all
+
+# Specific checks
+make lint
+make type-check
+make security-check
+```
+
+### **Release Process:**
+```bash
+# Prepare release
+make prepare-release
+
+# Test release
+make publish-test
+
+# Production release
+make publish
+```
+
+## 🔧 **Debug Commands:**
+
+### **Environment Issues:**
+```bash
+make env                # Show environment info
+make debug              # Show debug information
+make info               # Show package info
+```
+
+### **Module Issues:**
+```bash
+# Check if taskguard module is accessible
+python -c "import taskguard; print(taskguard.__file__)"
+
+# Check installation
+pip show taskguard
+
+# Reinstall if needed
+make clean
+make install-dev
+```
+
+## 🎯 **Quick Fixes for Current Issues:**
+
+### **Fix Makefile Warnings:**
+```bash
+# Replace current Makefile with fixed version
+cp /path/to/fixed/Makefile ./Makefile
+```
+
+### **Fix Module Import:**
+```bash
+# Reinstall in development mode
+pip uninstall taskguard
+make install-dev
+```
+
+### **Fix Shell Integration:**
+```bash
+# Regenerate shell integration
+make setup-shell
+source ~/.llmtask_shell.sh
+```
+
+### **Test Everything:**
+```bash
+# Verify everything works
+make status             # Should show TaskGuard status
+make test-llm          # Should test AI connection
+show_tasks             # Should work after sourcing shell
+```
+
+## 🎉 **Expected Results After Fixes:**
+
+### **Working Make Commands:**
+```bash
+make run               # ✅ Runs TaskGuard CLI
+make status            # ✅ Shows system status
+make tasks             # ✅ Shows current tasks
+make analyze           # ✅ Runs AI analysis
+```
+
+### **Working Shell Integration:**
+```bash
+show_tasks             # ✅ Lists tasks
+start_task 1           # ✅ Starts task
+smart_analysis         # ✅ AI analysis
+tg_help               # ✅ Shows help
+```
+
+### **Working Development:**
+```bash
+make dev               # ✅ Format + test
+make check             # ✅ All quality checks
+make build             # ✅ Package build
+```
+
+## 🚨 **Emergency Recovery:**
+
+If everything is broken:
+```bash
+# Nuclear option - start fresh
+make nuke
+git clean -fd
+pip install -e ".[all]"
+make dev-setup
+source ~/.llmtask_shell.sh
+```
+
+**After applying these fixes, your development environment should be fully functional! 🎯**
+# 🚀 TaskGuard One-Line Setup
+
+## ⚡ **Ultimate One-Liner (Complete Setup)**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/wronai/taskguard/main/install.sh | bash
+```
+
+## 🎯 **Alternative One-Liners**
+
+### **Basic Setup (No AI)**
+```bash
+pip install taskguard && taskguard init && taskguard setup shell && source ~/.llmtask_shell.sh && echo "✅ TaskGuard ready! Type 'show_tasks' to start"
+```
+
+### **With Local AI**
+```bash
+pip install taskguard && curl -fsSL https://ollama.ai/install.sh | sh && ollama serve & sleep 3 && ollama pull llama3.2:3b && taskguard init && taskguard setup shell && source ~/.llmtask_shell.sh && echo "✅ TaskGuard + AI ready! Type 'smart_analysis' to test"
+```
+
+### **For Developers**
+```bash
+pip install "taskguard[dev]" && taskguard init --template python && taskguard setup shell && source ~/.llmtask_shell.sh && echo "source ~/.llmtask_shell.sh" >> ~/.bashrc && echo "✅ Dev environment ready!"
+```
+
+### **Enterprise Setup**
+```bash
+pip install "taskguard[all]" && taskguard init --template enterprise && taskguard setup shell && taskguard setup monitoring && source ~/.llmtask_shell.sh && echo "source ~/.llmtask_shell.sh" >> ~/.bashrc && echo "✅ Enterprise TaskGuard ready!"
+```
+
+## 📋 **What Each One-Liner Does**
+
+### **Ultimate One-Liner**:
+1. Downloads smart installer script
+2. Detects your system (Linux/macOS/Windows)
+3. Installs Python + pip if needed
+4. Installs Ollama + recommended model
+5. Installs TaskGuard with all features
+6. Initializes project with best template
+7. Sets up shell integration
+8. Adds to shell profile automatically
+9. Tests everything works
+10. Shows quick start guide
+
+### **Basic One-Liner**:
+- ✅ Installs TaskGuard
+- ✅ Initializes project
+- ✅ Sets up shell integration
+- ✅ Loads shell functions
+- ✅ Ready to use immediately
+
+### **AI One-Liner**:
+- ✅ Everything from basic
+- ✅ Installs Ollama
+- ✅ Downloads AI model (llama3.2:3b)
+- ✅ Starts Ollama service
+- ✅ Tests AI integration
+- ✅ Ready for intelligent features
+
+## 🛠️ **Smart Installer Script (install.sh)**
+
+Create this script at `https://raw.githubusercontent.com/wronai/taskguard/main/install.sh`:
+
+## 🎯 **Usage Examples**
+
+### **New Project**
+```bash
+mkdir my-project && cd my-project
+curl -fsSL https://raw.githubusercontent.com/wronai/taskguard/main/install.sh | bash
+```
+
+### **Existing Python Project**
+```bash
+cd my-python-project
+curl -fsSL https://raw.githubusercontent.com/wronai/taskguard/main/install.sh | bash
+```
+
+### **Quick Test Drive**
+```bash
+curl -fsSL https://raw.githubusercontent.com/wronai/taskguard/main/install.sh | bash -s -- --demo
+```
+
+## 🔥 **What Makes This Special**
+
+1. **🧠 Intelligent Detection**:
+   - Auto-detects OS (Linux/macOS/Windows)
+   - Auto-detects project type (Python/JS/Generic)
+   - Auto-installs dependencies
+
+2. **🚀 Zero Configuration**:
+   - Chooses best template automatically
+   - Sets up shell integration
+   - Adds to shell profile
+   - Tests everything works
+
+3. **🤖 AI-Ready**:
+   - Optionally installs Ollama
+   - Downloads recommended model
+   - Tests AI integration
+   - Falls back gracefully if no AI
+
+4. **✅ Bulletproof**:
+   - Error handling for each step
+   - Rollback on failure
+   - Clear success/failure messages
+   - Works offline (except AI features)
+
+5. **⚡ Fast**:
+   - Parallel downloads
+   - Smart caching
+   - Minimal user interaction
+   - Background processes
+
+## 🎉 **Result After One-Liner**
+
+User gets a fully working TaskGuard environment with:
+- ✅ TaskGuard installed and configured
+- ✅ Shell integration loaded and persistent
+- ✅ Project initialized with best template
+- ✅ AI features ready (if chosen)
+- ✅ All functions working immediately
+- ✅ Help and examples shown
+- ✅ Ready for immediate productivity
+
+**From zero to intelligent development in one command! 🚀**
+
 
 ## 🎯 Dlaczego lokalne LLM?
 
