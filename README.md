@@ -4,8 +4,6 @@
 [![Python](https://img.shields.io/pypi/pyversions/taskguard.svg)](https://pypi.org/project/taskguard/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Downloads](https://img.shields.io/pypi/dm/taskguard.svg)](https://pypi.org/project/taskguard/)
-[![CI](https://github.com/wronai/taskguard/workflows/CI/badge.svg)](https://github.com/wronai/taskguard/actions)
-[![Coverage](https://codecov.io/gh/wronai/taskguard/branch/main/graph/badge.svg)](https://codecov.io/gh/wronai/taskguard)
 
 **Your AI-powered development assistant that controls LLM behavior, enforces best practices, and maintains laser focus through intelligent automation.**
 
@@ -33,13 +31,32 @@ ollama pull llama3.2:3b
 
 # Initialize your project
 taskguard init
+
+# Setup shell integration
+taskguard setup shell
+
+# IMPORTANT: Load shell functions
 source ~/.llmtask_shell.sh
 
 # Start intelligent development
-taskguard show-tasks
+show_tasks
 ```
 
 **That's it! Your development environment is now intelligently controlled.** 🎉
+
+## ⚠️ **Important Setup Note**
+
+After installation, you **must** load the shell functions:
+
+```bash
+# Load functions in current session
+source ~/.llmtask_shell.sh
+
+# For automatic loading in new sessions
+echo "source ~/.llmtask_shell.sh" >> ~/.bashrc
+```
+
+**Common issue**: If commands like `show_tasks` give "command not found", you forgot to run `source ~/.llmtask_shell.sh`!
 
 ## 🧠 **Key Innovation: Local AI Intelligence**
 
@@ -148,43 +165,67 @@ python bad_code.py
 
 ## 📋 **Command Reference**
 
-### 🎯 **Task Management**
+### 🎯 **Task Management (Shell Functions)**
 ```bash
-taskguard init                    # Initialize project
-taskguard show-tasks             # List all tasks with AI insights
-taskguard start-task <id>        # Start working on specific task  
-taskguard complete-task          # Mark current task as done
-taskguard add-task "title"       # Add new task
-taskguard focus-status           # Check current focus metrics
-taskguard productivity           # Show productivity statistics
+show_tasks                   # List all tasks with AI insights
+start_task <id>              # Start working on specific task  
+complete_task                # Mark current task as done
+add_task "title" [cat] [pri] # Add new task
+focus_status                 # Check current focus metrics
+productivity                 # Show productivity statistics
+
+# Alternative aliases
+tasks                        # Same as show_tasks
+done_task                    # Same as complete_task
+metrics                      # Same as productivity
 ```
 
-### 🧠 **Intelligence Features**
+### 🧠 **Intelligence Features (Shell Functions)**
 ```bash
-taskguard smart-analysis         # AI-powered project analysis
-taskguard smart-suggest          # Get AI task recommendations
-taskguard parse todo <file>      # Parse any TODO format
-taskguard parse changelog <file> # Parse any changelog format
-taskguard best-practices <file>  # Check best practices compliance
-taskguard test-llm              # Test local LLM connection
+smart_analysis               # AI-powered project analysis
+smart_suggest                # Get AI task recommendations
+best_practices [file]        # Check best practices compliance
+
+# Alternative aliases
+analyze                      # Same as smart_analysis
+insights                     # Same as smart_analysis
+suggest                      # Same as smart_suggest
+check_code [file]            # Same as best_practices
 ```
 
-### 🛡️ **Safety & Control**
+### 🛡️ **Safety & Control (Shell Functions)**
 ```bash
-taskguard status                 # Show system health
-taskguard health                 # Run project health check
-taskguard backup                 # Create project backup
-taskguard rollback              # Restore from backup
-taskguard exec <command>        # Execute command safely
+tg_status                    # Show system health
+tg_health                    # Run project health check
+tg_backup                    # Create project backup
+safe_rm <files>              # Delete with backup
+safe_git <command>           # Git with backup
+
+# Emergency commands
+force_python <file>          # Bypass safety checks
+force_exec <command>         # Emergency bypass
 ```
 
-### ⚙️ **Configuration**
+### ⚙️ **Configuration (CLI Commands)**
 ```bash
-taskguard config                 # Show current config
-taskguard config --edit          # Edit configuration
+taskguard config             # Show current config
+taskguard config --edit      # Edit configuration
 taskguard config --template enterprise  # Apply config template
-taskguard setup ollama          # Setup local AI
-taskguard setup shell           # Setup shell integration
+taskguard setup ollama       # Setup local AI
+taskguard setup shell        # Setup shell integration
+taskguard test-llm          # Test local LLM connection
+```
+
+### 💡 **Help & Information (Shell Functions)**
+```bash
+tg_help                      # Show all shell commands
+overview                     # Quick project overview
+check                        # Quick system check
+init_project                 # Initialize new project
+
+# Alternative aliases
+taskguard_help              # Same as tg_help
+llm_help                    # Same as tg_help
 ```
 
 ## 📊 **Configuration Templates**
@@ -278,23 +319,34 @@ TODO: Performance testing for API endpoints
 ### 🤖 **Perfect LLM Session**
 
 ```bash
-# 1. LLM checks project status
-taskguard show-tasks
-# 📋 Shows current tasks with AI insights
+# 1. LLM checks project status (using shell functions)
+show_tasks
+# 📋 Current Tasks:
+# ⏳ #1 🔴 [feature] Setup authentication system
+# ⏳ #2 🔴 [feature] Implement core functionality
 
 # 2. LLM starts focused work  
-taskguard start-task 1
+start_task 1
 # 🎯 Started task: Setup authentication system
 
-# 3. LLM works only on this task
+# 3. LLM works only on this task (commands are wrapped)
 python auth.py
+# 📦 Creating safety checkpoint...
+# ✅ python auth.py completed safely
 # ✅ Code follows best practices!
 
 # 4. LLM completes task properly
-taskguard complete-task
+complete_task
 # ✅ Task completed: Setup authentication system
 # 📝 Changelog updated automatically
 # 🎯 Next suggested task: Add authentication tests
+
+# 5. LLM can use AI features
+smart_analysis
+# 💡 AI Insights:
+#    1. Authentication system is now ready for testing
+#    2. Consider adding input validation
+#    3. Database integration should be next priority
 ```
 
 ## 📊 **Intelligent Features**
@@ -434,11 +486,33 @@ security:
 - **Universal document** parsing (any format works)
 - **Intelligent insights** that actually help
 
-## 📦 **Installation Options**
-
 ### ⚡ **Quick Install**
 ```bash
 pip install taskguard
+```
+
+### 🚀 **Complete Setup (Recommended)**
+```bash
+# 1. Install TaskGuard
+pip install taskguard
+
+# 2. Setup local AI (optional but powerful)
+curl -fsSL https://ollama.ai/install.sh | sh
+ollama serve
+ollama pull llama3.2:3b
+
+# 3. Initialize your project
+taskguard init
+
+# 4. Setup shell integration
+taskguard setup shell
+
+# 5. Load shell functions (CRITICAL STEP)
+source ~/.llmtask_shell.sh
+
+# 6. Test the setup
+show_tasks
+tg_help
 ```
 
 ### 🔧 **Development Install**
@@ -446,16 +520,72 @@ pip install taskguard
 git clone https://github.com/wronai/taskguard.git
 cd taskguard
 pip install -e ".[dev]"
+taskguard init
+source ~/.llmtask_shell.sh
 ```
 
 ### 🎯 **Full Features Install**
 ```bash
 pip install "taskguard[all]"  # Includes LLM, security, docs
+taskguard setup shell
+source ~/.llmtask_shell.sh
 ```
 
 ### 🐳 **Docker Install**
 ```bash
 docker run -it wronai/taskguard:latest
+```
+
+## 🚨 **Troubleshooting Setup**
+
+### ❓ **"Command not found: show_tasks"**
+```bash
+# The most common issue - you forgot to source the shell file
+source ~/.llmtask_shell.sh
+
+# Check if functions are loaded
+type show_tasks
+
+# If still not working, regenerate shell integration
+taskguard setup shell --force
+source ~/.llmtask_shell.sh
+```
+
+### ❓ **"TaskGuard command not found"**
+```bash
+# Check installation
+pip list | grep taskguard
+
+# Reinstall if needed
+pip install --force-reinstall taskguard
+
+# Check PATH
+which taskguard
+```
+
+### ❓ **Shell integration file missing**
+```bash
+# Check if file exists
+ls -la ~/.llmtask_shell.sh
+
+# If missing, create it
+taskguard setup shell
+
+# Make sure it's executable
+chmod +x ~/.llmtask_shell.sh
+source ~/.llmtask_shell.sh
+```
+
+### ❓ **Functions work but disappear in new terminal**
+```bash
+# Add to your shell profile for automatic loading
+echo "source ~/.llmtask_shell.sh" >> ~/.bashrc
+
+# For zsh users
+echo "source ~/.llmtask_shell.sh" >> ~/.zshrc
+
+# Restart terminal or source profile
+source ~/.bashrc
 ```
 
 ## 🛠️ **Advanced Features**

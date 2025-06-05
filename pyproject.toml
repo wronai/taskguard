@@ -1,24 +1,14 @@
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
+[tool.poetry]
 name = "taskguard"
 version = "0.2.0"
 description = "🧠 LLM Task Controller - Intelligent project management with local AI"
+authors = ["Tom Sapletta <info@softreck.dev>"]
+maintainers = ["WRONAI Team"]
+license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.8"
-license = {text = "Apache-2.0"}
-authors = [
-    {name = "Tom Sapletta", email = "info@softreck.dev"},
-]
-maintainers = [
-    {name = "WRONAI Team", email = "team@wronai.com"},
-]
-keywords = [
-    "llm", "task-management", "ai", "productivity", "development",
-    "best-practices", "ollama", "local-ai", "focus", "automation"
-]
+homepage = "https://github.com/wronai/taskguard"
+documentation = "https://taskguard.readthedocs.io"
+repository = "https://github.com/wronai/taskguard.git"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -37,69 +27,79 @@ classifiers = [
     "Natural Language :: English",
 ]
 
-dependencies = [
-    "pyyaml>=6.0",
-    "requests>=2.25.0",
-    "pathlib2>=2.3.0;python_version<'3.4'",
-    "typing-extensions>=4.0.0;python_version<'3.8'",
-]
+[tool.poetry.dependencies]
+python = "^3.8"
+pyyaml = "^6.0"
+requests = "^2.31.0"
+typing-extensions = { version = "^4.7.1", python = "<3.8" }
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=7.0",
-    "pytest-cov>=4.0",
-    "black>=22.0",
-    "isort>=5.0",
-    "flake8>=5.0",
-    "mypy>=1.0",
-    "pre-commit>=2.0",
-    "tox>=4.0",
-]
-llm = [
-    "ollama-python>=0.1.0",
-    "openai>=1.0.0",
-    "anthropic>=0.3.0",
-]
-security = [
-    "bandit>=1.7.0",
-    "safety>=2.0.0",
-    "semgrep>=1.0.0",
-]
-docs = [
-    "mkdocs>=1.4.0",
-    "mkdocs-material>=8.0.0",
-    "mkdocstrings[python]>=0.19.0",
-]
-all = [
-    "taskguard[dev,llm,security,docs]"
-]
+# LLM Dependencies
+ollama-python = { version = "^0.1.0", optional = true }
+openai = { version = "^1.0.0", optional = true }
+anthropic = { version = "^0.3.0", optional = true }
 
-[project.urls]
-Homepage = "https://github.com/wronai/taskguard"
-Documentation = "https://taskguard.readthedocs.io"
-Repository = "https://github.com/wronai/taskguard.git"
-"Bug Reports" = "https://github.com/wronai/taskguard/issues"
-"Feature Requests" = "https://github.com/wronai/taskguard/discussions"
-Changelog = "https://github.com/wronai/taskguard/blob/main/CHANGELOG.md"
+# Security Dependencies
+bandit = { version = "^1.7.0", optional = true }
+safety = { version = "^2.0.0", optional = true }
+semgrep = { version = "^1.0.0", optional = true }
 
-[project.scripts]
+# Documentation Dependencies
+mkdocs = { version = "^1.4.0", optional = true }
+mkdocs-material = { version = "^8.0.0", optional = true }
+mkdocstrings = { version = "^0.19.0", optional = true, extras = ["python"] }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
 taskguard = "taskguard.cli:main"
 tg = "taskguard.cli:main"
 llmtask = "taskguard.cli:main"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+pytest-cov = "^4.0"
+black = "^22.0"
+isort = "^5.0"
+flake8 = "^5.0"
+mypy = "^1.0"
+pre-commit = "^2.0"
+tox = "^4.0"
 
-[tool.setuptools.packages.find]
-where = ["src"]
-include = ["taskguard*"]
+[tool.poetry.group.docs.dependencies]
+mkdocs = "^1.4.0"
+mkdocs-material = "^8.0.0"
+mkdocstrings = {extras = ["python"], version = "^0.19.0"}
 
-[tool.setuptools.package-data]
-taskguard = [
-    "config/*.yaml",
-    "templates/*.md",
-    "scripts/*.sh",
-]
+[tool.poetry.group.llm.dependencies]
+ollama-python = "^0.1.0"
+openai = "^1.0.0"
+anthropic = "^0.3.0"
+
+[tool.poetry.group.security.dependencies]
+bandit = "^1.7.0"
+safety = "^2.0.0"
+semgrep = "^1.0.0"
+
+[tool.poetry.group.all.dependencies]
+pytest = "^7.0"
+pytest-cov = "^4.0"
+black = "^22.0"
+isort = "^5.0"
+flake8 = "^5.0"
+mypy = "^1.0"
+pre-commit = "^2.0"
+tox = "^4.0"
+mkdocs = "^1.4.0"
+mkdocs-material = "^8.0.0"
+mkdocstrings = {extras = ["python"], version = "^0.19.0"}
+ollama-python = "^0.1.0"
+openai = "^1.0.0"
+anthropic = "^0.3.0"
+bandit = "^1.7.0"
+safety = "^2.0.0"
+semgrep = "^1.0.0"
 
 # Development tools configuration
 [tool.black]
