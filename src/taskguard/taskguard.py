@@ -490,8 +490,9 @@ class LLMTaskController:
             return False
 
         # Track file modifications
-        if command[0] in ["python", "node", "touch"] and len(command) > 1:
-            file_path = command[1]
+        if command[0] in ["python", "node", "npm", "touch"] and len(command) > 1:
+            # For npm, track the current directory since it can modify multiple files
+            file_path = "." if command[0] == "npm" else command[1]
             if file_path not in self.state["files_modified_today"]:
                 self.state["files_modified_today"].append(file_path)
 
@@ -503,7 +504,7 @@ class LLMTaskController:
                 print(result.stderr, file=sys.stderr)
 
             # Post-execution checks for created/modified files
-            if command[0] == "python" and len(command) > 1:
+            if command[0] in ["python", "node"] and len(command) > 1:
                 file_path = command[1]
                 if Path(file_path).exists():
                     violations = self.check_best_practices(file_path)

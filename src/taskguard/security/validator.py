@@ -10,7 +10,7 @@ import re
 from dataclasses import dataclass
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Pattern, Set
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -155,7 +155,10 @@ class SecurityValidator:
                             message="Potential shell injection vulnerability",
                             line=i,
                             code_snippet=line,
-                            fix_suggestion="Use subprocess with shell=False or use shlex.quote() for shell=True",
+                            fix_suggestion=(
+                                "Use subprocess with shell=False or use "
+                                "shlex.quote() for shell=True"
+                            ),
                         )
                     )
 
@@ -198,7 +201,9 @@ class SecurityASTAnalyzer(ast.NodeVisitor):
                         message=f"Use of dangerous function: {func_name}",
                         line=node.lineno,
                         col_offset=node.col_offset,
-                        fix_suggestion=f"Avoid using {func_name}, consider safer alternatives",
+                        fix_suggestion=(
+                            f"Avoid using {func_name}, consider safer alternatives"
+                        ),
                     )
                 )
 
@@ -219,10 +224,15 @@ class SecurityASTAnalyzer(ast.NodeVisitor):
                     self.issues.append(
                         SecurityIssue(
                             level=SecurityLevel.HIGH,
-                            message="Potential shell injection with shell=True",
+                            message=(
+                                "Potential shell injection with shell=True"
+                            ),
                             line=node.lineno,
                             col_offset=node.col_offset,
-                            fix_suggestion="Avoid shell=True when possible, or use shlex.quote() on arguments",
+                            fix_suggestion=(
+                                "Avoid shell=True when possible, or use "
+                                "shlex.quote() on arguments"
+                            ),
                         )
                     )
 

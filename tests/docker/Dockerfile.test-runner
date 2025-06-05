@@ -1,0 +1,55 @@
+FROM ubuntu:22.04
+
+# Set noninteractive installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install common dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    git \
+    curl \
+    wget \
+    vim \
+    sudo \
+    ssh \
+    openssh-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Docker for running tests
+RUN apt-get update && \
+    apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release && \
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg && \
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y docker-ce docker-ce-cli containerd.io && \
+    usermod -aG docker $USER
+
+# Create a non-root user
+RUN useradd -m -s /bin/bash tester && \
+    usermod -aG docker tester && \
+    echo 'tester ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+
+USER tester
+WORKDIR /home/tester
+
+# Set up Python environment
+RUN python3 -m venv /home/tester/venv
+ENV PATH="/home/tester/venv/bin:$PATH"
+
+# Install TaskGuard and test dependencies
+COPY --chown=tester:tester . /app
+WORKDIR /app
+
+# Install TaskGuard in development mode with test dependencies
+RUN pip install --upgrade pip && \
+    pip install -e ".[test]" && \
+    pip install ansible docker pytest-testinfra
+
+# Copy test scripts
+COPY --chown=tester:tester tests/docker/run_tests.sh /home/tester/run_tests.sh
+RUN chmod +x /home/tester/run_tests.sh
+
+# Default command to run tests
+CMD ["/home/tester/run_tests.sh"]

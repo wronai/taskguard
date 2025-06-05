@@ -1,0 +1,108 @@
+---
+- name: Test TaskGuard on all environments
+  hosts: all
+  gather_facts: true
+  become: false
+  tasks:
+    - name: Create test directory
+      file:
+        path: /tmp/taskguard-tests
+        state: directory
+        mode: '0755'
+
+    - name: Copy test files
+      copy:
+        src: "{{ item }}"
+        dest: /tmp/taskguard-tests/
+        mode: '0644'
+      with_fileglob:
+        - ../../test_*.py
+
+    - name: Install system dependencies
+      block:
+        - name: Install Python (Alpine)
+          apk:
+            name: python3
+            state: present
+          when: ansible_os_family == 'Alpine'
+
+        - name: Install Python (Debian/Ubuntu)
+          apt:
+            name: python3
+            state: present
+          when: ansible_os_family == 'Debian'
+
+        - name: Install Python (RedHat/CentOS)
+          yum:
+            name: python3
+            state: present
+          when: ansible_os_family == 'RedHat'
+
+        - name: Install Python (Arch)
+          pacman:
+            name: python
+            state: present
+          when: ansible_os_family == 'Archlinux'
+
+    - name: Set up Python virtual environment
+      command: python3 -m venv /tmp/taskguard-venv
+      args:
+        creates: /tmp/taskguard-venv
+
+    - name: Install TaskGuard in development mode
+      pip:
+        requirements: /app/requirements-dev.txt
+        virtualenv: /tmp/taskguard-venv
+        virtualenv_command: python3 -m venv
+
+    - name: Run basic tests
+      command: /tmp/taskguard-venv/bin/python -m pytest /tmp/taskguard-tests/test_basic.py -v
+      register: test_result
+      ignore_errors: true
+
+    - name: Show test results
+      debug:
+        var: test_result
+
+    - name: Run security scanner tests
+      command: /tmp/taskguard-venv/bin/python -m pytest /tmp/taskguard-tests/test_security.py -v
+      register: security_test_result
+      ignore_errors: true
+
+    - name: Show security test results
+      debug:
+        var: security_test_result
+
+    - name: Run LLM interface tests
+      command: /tmp/taskguard-venv/bin/python -m pytest /tmp/taskguard-tests/test_llm_interface.py -v
+      register: llm_test_result
+      ignore_errors: true
+      when: '"test-ubuntu" in inventory_hostname'  # Only run LLM tests on Ubuntu
+
+    - name: Show LLM test results
+      debug:
+        var: llm_test_result
+      when: '"test-ubuntu" in inventory_hostname'
+
+    - name: Test TaskGuard CLI
+      command: /tmp/taskguard-venv/bin/taskguard --help
+      register: cli_test
+      changed_when: false
+
+    - name: Show CLI test result
+      debug:
+        var: cli_test
+
+- name: Generate test report
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Create test report
+      template:
+        src: templates/test_report.j2
+        dest: /tmp/taskguard-test-report.html
+      delegate_to: localhost
+
+    - name: Print test report location
+      debug:
+        msg: "Test report generated at /tmp/taskguard-test-report.html"

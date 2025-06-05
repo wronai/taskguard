@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>TaskGuard Test Report</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .header {
+            background-color: #3498db;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        .test-result {
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .passed {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .failed {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .skipped {
+            background-color: #e2e3e5;
+            border-color: #d6d8db;
+            color: #383d41;
+        }
+        .test-details {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+        }
+        .summary {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .host-results {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>TaskGuard Test Report</h1>
+        <p>Generated on {{ ansible_date_time.iso8601 }}</p>
+    </div>
+
+    <div class="summary">
+        <h2>Test Summary</h2>
+        <p>Total Hosts: {{ hostvars|length }}</p>
+        <p>Test Duration: {{ (ansible_date_time.epoch|int - playbook_start_time|int)|int }} seconds</p>
+    </div>
+
+    {% for host in hostvars %}
+    <div class="host-results">
+        <h2>Host: {{ hostvars[host].inventory_hostname }}</h2>
+        <p>OS: {{ hostvars[host].ansible_distribution }} {{ hostvars[host].ansible_distribution_version }}</p>
+        
+        {% if 'test_result' in hostvars[host] %}
+        <div class="test-result {% if hostvars[host].test_result.rc == 0 %}passed{% else %}failed{% endif %}">
+            <h3>Basic Tests</h3>
+            <p>Status: {% if hostvars[host].test_result.rc == 0 %}PASSED{% else %}FAILED{% endif %}</p>
+            <div class="test-details">
+                {{ hostvars[host].test_result.stdout }}
+                {{ hostvars[host].test_result.stderr }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if 'security_test_result' in hostvars[host] %}
+        <div class="test-result {% if hostvars[host].security_test_result.rc == 0 %}passed{% else %}failed{% endif %}">
+            <h3>Security Tests</h3>
+            <p>Status: {% if hostvars[host].security_test_result.rc == 0 %}PASSED{% else %}FAILED{% endif %}</p>
+            <div class="test-details">
+                {{ hostvars[host].security_test_result.stdout }}
+                {{ hostvars[host].security_test_result.stderr }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if 'llm_test_result' in hostvars[host] %}
+        <div class="test-result {% if hostvars[host].llm_test_result.rc == 0 %}passed{% else %}failed{% endif %}">
+            <h3>LLM Interface Tests</h3>
+            <p>Status: {% if hostvars[host].llm_test_result.rc == 0 %}PASSED{% else %}FAILED{% endif %}</p>
+            <div class="test-details">
+                {{ hostvars[host].llm_test_result.stdout }}
+                {{ hostvars[host].llm_test_result.stderr }}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if 'cli_test' in hostvars[host] %}
+        <div class="test-result {% if hostvars[host].cli_test.rc == 0 %}passed{% else %}failed{% endif %}">
+            <h3>CLI Test</h3>
+            <p>Status: {% if hostvars[host].cli_test.rc == 0 %}PASSED{% else %}FAILED{% endif %}</p>
+            <div class="test-details">
+                {{ hostvars[host].cli_test.stdout }}
+                {{ hostvars[host].cli_test.stderr }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</body>
+</html>

@@ -1,0 +1,100 @@
+version: '3.8'
+
+services:
+  test-ubuntu-20.04:
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu-20.04
+    volumes:
+      - ../..:/app
+    tty: true
+    environment:
+      - TZ=Europe/Warsaw
+
+  test-ubuntu-22.04:
+    build:
+      context: .
+      dockerfile: Dockerfile.ubuntu-22.04
+    volumes:
+      - ../..:/app
+    tty: true
+    environment:
+      - TZ=Europe/Warsaw
+
+  test-debian-bullseye:
+    build:
+      context: .
+      dockerfile: Dockerfile.debian-bullseye
+    volumes:
+      - ../..:/app
+    tty: true
+    environment:
+      - TZ=Europe/Warsaw
+
+  test-centos-7:
+    build:
+      context: .
+      dockerfile: Dockerfile.centos-7
+    volumes:
+      - ../..:/app
+    tty: true
+    environment:
+      - TZ=Europe/Warsaw
+
+  test-centos-8:
+    build:
+      context: .
+      dockerfile: Dockerfile.centos-8
+    volumes:
+      - ../..:/app
+    tty: true
+    environment:
+      - TZ=Europe/Warsaw
+
+  test-alpine-3.16:
+    build:
+      context: .
+      dockerfile: Dockerfile.alpine-3.16
+    volumes:
+      - ../..:/app
+    tty: true
+    environment:
+      - TZ=Europe/Warsaw
+
+  test-alpine-3.17:
+    build:
+      context: .
+      dockerfile: Dockerfile.alpine-3.17
+    volumes:
+      - ../..:/app
+    tty: true
+    environment:
+      - TZ=Europe/Warsaw
+
+  test-archlinux:
+    build:
+      context: .
+      dockerfile: Dockerfile.archlinux
+    volumes:
+      - ../..:/app
+    tty: true
+    environment:
+      - TZ=Europe/Warsaw
+
+  test-runner:
+    build:
+      context: .
+      dockerfile: Dockerfile.test-runner
+    volumes:
+      - ../..:/app
+    depends_on:
+      - test-ubuntu-20.04
+      - test-ubuntu-22.04
+      - test-debian-bullseye
+      - test-centos-7
+      - test-centos-8
+      - test-alpine-3.16
+      - test-alpine-3.17
+      - test-archlinux
+    environment:
+      - TZ=Europe/Warsaw
