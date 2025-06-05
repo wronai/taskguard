@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """
 🎯 LLM Task Controller - Focus & Best Practices Engine
-One file to control LLM behavior, enforce best practices, and maintain focus
+Updated with new shell integration system
 """
 
 import os, sys, json, re, subprocess, time, yaml
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Any
+
+# Import shell integration
+try:
+    from .shell_integration import ShellIntegration
+except ImportError:
+    # Fallback for standalone execution
+    from shell_integration import ShellIntegration
 
 
 class LLMTaskController:
@@ -16,7 +23,7 @@ class LLMTaskController:
         self.state = self.load_state()
         self.todo = self.load_todo()
         self.changelog = self.load_changelog()
-        self.setup_shell()
+        self.shell_integration = ShellIntegration(self.config)
 
     def load_config(self):
         """Load YAML configuration with best practices"""
@@ -339,7 +346,7 @@ class LLMTaskController:
         next_task = self.get_current_task()
         if next_task:
             print(f"🎯 Next suggested task: {next_task['title']}")
-            print("💡 Use: start_task {next_task['id']} to begin")
+            print(f"💡 Use: start_task {next_task['id']} to begin")
         else:
             print("🎉 All tasks completed! Add more tasks to continue.")
 
@@ -477,193 +484,75 @@ class LLMTaskController:
             print(f"❌ Error: {e}")
             return False
 
-    def setup_shell(self):
-        """Setup shell integration with task management"""
-        shell_functions = f"""#!/bin/bash
-# LLM Task Controller Shell Integration
+    def setup_shell(self, force: bool = False):
+        """Setup shell integration using new system"""
+        print("🔧 Setting up shell integration...")
 
-# Override common commands
-python() {{
-    python3 {__file__} exec python "$@"
-}}
+        success = self.shell_integration.setup_shell_integration(force=force)
 
-node() {{
-    python3 {__file__} exec node "$@"
-}}
+        if success:
+            print("\n🎯 Shell Integration Ready!")
+            print("=" * 30)
+            print("📋 Available commands:")
+            print("  show_tasks              - List all tasks")
+            print("  start_task <id>         - Start working on task")
+            print("  complete_task           - Complete current task")
+            print("  add_task '<title>'      - Add new task")
+            print("  smart_analysis          - AI project analysis")
+            print("  best_practices [file]   - Check code quality")
+            print("  focus_status            - Show focus metrics")
+            print("  productivity            - Show statistics")
+            print("")
+            print("🚀 Quick start:")
+            print(f"  1. source {self.shell_integration.shell_file}")
+            print("  2. show_tasks")
+            print("  3. start_task 1")
+            print("  4. Type 'tg_help' for all commands")
 
-# Task management commands
-show_tasks() {{
-    python3 {__file__} show_tasks
-}}
+            # Offer to add to shell profile
+            try:
+                response = input("\n💡 Add to your shell profile for automatic loading? (y/N): ")
+                if response.lower() in ['y', 'yes']:
+                    # Detect shell
+                    shell = os.environ.get('SHELL', '/bin/bash').split('/')[-1]
+                    if shell in ['bash', 'zsh']:
+                        self.shell_integration.add_to_profile(shell)
+                    else:
+                        print(f"⚠️ Unsupported shell: {shell}")
+                        print("💡 Manually add this line to your shell profile:")
+                        print(f"   source {self.shell_integration.shell_file}")
+            except (KeyboardInterrupt, EOFError):
+                pass
 
-start_task() {{
-    python3 {__file__} start_task "$1"
-}}
+        return success
 
-complete_task() {{
-    python3 {__file__} complete_task
-}}
-
-add_task() {{
-    python3 {__file__} add_task "$@"
-}}
-
-focus_status() {{
-    python3 {__file__} focus_status
-}}
-
-best_practices() {{
-    python3 {__file__} best_practices "$1"
-}}
-
-productivity() {{
-    python3 {__file__} productivity
-}}
-"""
-
-        shell_file = Path.home() / ".llmtask_shell.sh"
-        with open(shell_file, 'w') as f:
-            f.write(shell_functions)
-        shell_file.chmod(0o755)
-
-        if len(sys.argv) == 1:
-            print("🎯 LLM Task Controller initialized!")
-            print(f"📋 Activate: source {shell_file}")
-            print(f"⚙️ Configure: .llmcontrol.yaml")
-            print(f"📝 Tasks: TODO.yaml")
-            print(f"🚀 Start: show_tasks")
+    def test_shell_integration(self):
+        """Test shell integration"""
+        return self.shell_integration.test_shell_integration()
 
 
+# Legacy compatibility - keep existing interface
 def main():
+    """Main function for backward compatibility"""
     controller = LLMTaskController()
 
     if len(sys.argv) == 1:
+        print("🎯 LLM Task Controller initialized!")
+        print("💡 Use the new CLI: taskguard --help")
+        print("🔧 Or setup shell integration: taskguard setup shell")
         return
 
+    # Handle legacy commands
     command = sys.argv[1]
     args = sys.argv[2:]
 
-    if command == "exec":
-        controller.safe_execute(args)
-
-    elif command == "show_tasks":
-        print("📋 Current Tasks:")
-        print("=" * 50)
-
-        current = controller.get_current_task()
-        if current:
-            print(f"🎯 ACTIVE: #{current['id']} {current['title']}")
-            if controller.state['task_start_time']:
-                duration = time.time() - controller.state['task_start_time']
-                print(f"   ⏱️ Working for: {int(duration // 60)}m {int(duration % 60)}s")
-            print()
-
-        for task in controller.todo:
-            status_icon = {"pending": "⏳", "in_progress": "🔄", "completed": "✅"}
-            icon = status_icon.get(task['status'], "❓")
-            priority_icon = {"high": "🔴", "medium": "🟡", "low": "🟢"}
-            p_icon = priority_icon.get(task.get('priority', 'low'), "⚪")
-
-            print(f"{icon} #{task['id']} {p_icon} [{task['category']}] {task['title']}")
-            if task.get('description'):
-                print(f"    📝 {task['description']}")
-
-        pending = [t for t in controller.todo if t['status'] == 'pending']
-        if pending and not current:
-            next_task = pending[0]
-            print(f"\n💡 Suggested next: start_task {next_task['id']}")
-
-    elif command == "start_task":
-        if args:
-            try:
-                task_id = int(args[0])
-                controller.start_task(task_id)
-            except ValueError:
-                print("❌ Invalid task ID")
-        else:
-            print("❌ Usage: start_task <task_id>")
-
-    elif command == "complete_task":
-        controller.complete_task()
-
-    elif command == "add_task":
-        if not args:
-            print("❌ Usage: add_task <title> [category] [priority]")
-            return
-
-        title = args[0]
-        category = args[1] if len(args) > 1 else 'feature'
-        priority = args[2] if len(args) > 2 else 'medium'
-
-        new_id = max((t['id'] for t in controller.todo), default=0) + 1
-        new_task = {
-            'id': new_id,
-            'title': title,
-            'category': category,
-            'priority': priority,
-            'status': 'pending',
-            'created_at': datetime.now().isoformat()
-        }
-
-        controller.todo.append(new_task)
-        controller.save_todo()
-        print(f"✅ Added task #{new_id}: {title}")
-
-    elif command == "focus_status":
-        current = controller.get_current_task()
-        print("🎯 Focus Status:")
-        print(f"Current Task: {current['title'] if current else 'None'}")
-        print(f"Focus Score: {controller.state['focus_score']}/100")
-        print(f"Files Modified Today: {len(controller.state['files_modified_today'])}")
-        print(f"Best Practice Violations: {controller.state['best_practice_violations']}")
-
-        if controller.state['task_start_time']:
-            duration = time.time() - controller.state['task_start_time']
-            timeout = controller.config['focus']['task_timeout_minutes'] * 60
-            remaining = max(0, timeout - duration)
-            print(f"Time Remaining: {int(remaining // 60)}m {int(remaining % 60)}s")
-
-    elif command == "best_practices":
-        if args:
-            file_path = args[0]
-            violations = controller.check_best_practices(file_path)
-            if violations:
-                print(f"📋 Best Practice Review for {file_path}:")
-                for violation in violations:
-                    print(f"   ❌ {violation}")
-            else:
-                print(f"✅ {file_path} follows all best practices!")
-        else:
-            print("📋 Available Best Practices:")
-            for lang, practices in controller.config['best_practices'].items():
-                print(f"\n{lang.title()}:")
-                for practice, enabled in practices.items():
-                    status = "✅" if enabled else "❌"
-                    print(f"   {status} {practice}")
-
-    elif command == "productivity":
-        metrics = controller.state['productivity_metrics']
-        session_time = time.time() - controller.state['session_start']
-
-        print("📊 Productivity Metrics:")
-        print(f"Tasks Completed: {metrics['tasks_completed']}")
-        print(f"Files Created: {metrics['files_created']}")
-        print(f"Lines Written: {metrics['lines_written']}")
-        print(f"Time Focused: {int(metrics['time_focused'] // 3600)}h {int((metrics['time_focused'] % 3600) // 60)}m")
-        print(f"Session Time: {int(session_time // 3600)}h {int((session_time % 3600) // 60)}m")
-
-        if session_time > 0:
-            efficiency = (metrics['time_focused'] / session_time) * 100
-            print(f"Focus Efficiency: {efficiency:.1f}%")
-
-    elif command == "config":
-        config_file = Path.cwd() / ".llmcontrol.yaml"
-        if args and args[0] == "edit":
-            subprocess.run([os.environ.get("EDITOR", "nano"), str(config_file)])
-        else:
-            print(f"📝 Config file: {config_file}")
-            print("\n🔧 Current Configuration:")
-            print(yaml.dump(controller.config, default_flow_style=False, indent=2))
+    if command == "setup_shell":
+        controller.setup_shell(force="--force" in args)
+    elif command == "test_shell":
+        controller.test_shell_integration()
+    else:
+        print(f"⚠️ Legacy command: {command}")
+        print("💡 Use the new CLI: taskguard --help")
 
 
 if __name__ == "__main__":
