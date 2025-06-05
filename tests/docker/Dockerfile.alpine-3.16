@@ -6,7 +6,7 @@ ENV LC_ALL en_US.UTF-8
 ENV PYTHONIOENCODING=utf-8
 ENV PYTHONUNBUFFERED=1
 
-# Install common dependencies
+# Install common dependencies and locales
 RUN apk add --no-cache \
     python3 \
     py3-pip \
@@ -19,7 +19,9 @@ RUN apk add --no-cache \
     musl-locales \
     musl-locales-lang \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
-    && locale-gen
+    && /usr/glibc-compat/bin/localedef -i en_US -f UTF-8 en_US.UTF-8 \
+    && echo "export LANG=en_US.UTF-8" > /etc/profile.d/locale.sh \
+    && echo "export LC_ALL=en_US.UTF-8" >> /etc/profile.d/locale.sh
 
 # Create a non-root user
 RUN adduser -D -s /bin/bash tester && \
