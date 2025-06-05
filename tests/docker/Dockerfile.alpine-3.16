@@ -18,10 +18,12 @@ RUN apk add --no-cache \
     bash \
     musl-locales \
     musl-locales-lang \
+    tzdata \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
-    && /usr/glibc-compat/bin/localedef -i en_US -f UTF-8 en_US.UTF-8 \
+    && /usr/bin/localedef -i en_US -f UTF-8 en_US.UTF-8 \
     && echo "export LANG=en_US.UTF-8" > /etc/profile.d/locale.sh \
-    && echo "export LC_ALL=en_US.UTF-8" >> /etc/profile.d/locale.sh
+    && echo "export LC_ALL=en_US.UTF-8" >> /etc/profile.d/locale.sh \
+    && echo "export PYTHONIOENCODING=utf-8" >> /etc/profile.d/locale.sh
 
 # Create a non-root user
 RUN adduser -D -s /bin/bash tester && \

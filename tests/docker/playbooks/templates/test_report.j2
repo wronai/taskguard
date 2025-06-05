@@ -2,126 +2,449 @@
 <html>
 <head>
     <title>TaskGuard Test Report</title>
+    <meta charset="UTF-8">
     <style>
+        :root {
+            --primary: #3498db;
+            --success: #28a745;
+            --danger: #dc3545;
+            --warning: #ffc107;
+            --info: #17a2b8;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+        }
+        
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             color: #333;
+            background-color: #f5f7fa;
         }
-        h1, h2, h3 {
-            color: #2c3e50;
-        }
-        .header {
-            background-color: #3498db;
-            color: white;
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary), #1e6f9d);
+            color: white;
+            padding: 30px 20px;
             text-align: center;
             margin-bottom: 30px;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-        .test-result {
-            border: 1px solid #ddd;
-            margin-bottom: 20px;
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        
+        .header p {
+            margin: 10px 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .summary {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .summary-item {
+            text-align: center;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 6px;
+            background-color: var(--light);
         }
-        .passed {
+        
+        .summary-item .value {
+            font-size: 2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .host-card {
+            background: white;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .host-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .host-title {
+            margin: 0;
+            color: var(--dark);
+        }
+        
+        .host-os {
+            color: var(--gray);
+            font-style: italic;
+        }
+        
+        .test-result {
+            margin-bottom: 20px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #e9ecef;
+        }
+        
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            background-color: var(--light);
+            transition: background-color 0.2s;
+        }
+        
+        .test-header:hover {
+            background-color: #e9ecef;
+        }
+        
+        .test-title {
+            margin: 0;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .test-status {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-passed {
             background-color: #d4edda;
-            border-color: #c3e6cb;
             color: #155724;
         }
-        .failed {
+        
+        .status-failed {
             background-color: #f8d7da;
-            border-color: #f5c6cb;
             color: #721c24;
         }
-        .skipped {
+        
+        .status-skipped {
             background-color: #e2e3e5;
-            border-color: #d6d8db;
             color: #383d41;
         }
+        
         .test-details {
-            margin-top: 10px;
-            padding: 10px;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
             background-color: #f8f9fa;
-            border-radius: 4px;
-            font-family: monospace;
+            font-family: 'Courier New', Courier, monospace;
             white-space: pre-wrap;
+            padding: 0 20px;
+            margin: 0;
         }
-        .summary {
-            margin: 30px 0;
+        
+        .test-details.expanded {
+            max-height: 1000px;
             padding: 20px;
-            background-color: #f8f9fa;
-            border-radius: 5px;
+            border-top: 1px solid #e9ecef;
         }
-        .host-results {
-            margin-top: 20px;
+        
+        .toggle-details {
+            background: none;
+            border: none;
+            color: var(--gray);
+            cursor: pointer;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .toggle-details:hover {
+            color: var(--dark);
+        }
+        
+        .test-metrics {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9em;
+            color: var(--gray);
+        }
+        
+        .metric {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .metric .value {
+            font-weight: bold;
+            color: var(--dark);
+        }
+        
+        .timestamp {
+            font-size: 0.85em;
+            color: var(--gray);
+            text-align: right;
+            margin-top: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .host-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>TaskGuard Test Report</h1>
-        <p>Generated on {{ ansible_date_time.iso8601 }}</p>
-    </div>
-
-    <div class="summary">
-        <h2>Test Summary</h2>
-        <p>Total Hosts: {{ hostvars|length }}</p>
-        <p>Test Duration: {{ (ansible_date_time.epoch|int - playbook_start_time|int)|int }} seconds</p>
-    </div>
-
-    {% for host in hostvars %}
-    <div class="host-results">
-        <h2>Host: {{ hostvars[host].inventory_hostname }}</h2>
-        <p>OS: {{ hostvars[host].ansible_distribution }} {{ hostvars[host].ansible_distribution_version }}</p>
+    <div class="container">
+        <div class="header">
+            <h1>TaskGuard Test Report</h1>
+            <p>Generated on {{ ansible_date_time.iso8601 }}</p>
+        </div>
         
-        {% if 'test_result' in hostvars[host] %}
-        <div class="test-result {% if hostvars[host].test_result.rc == 0 %}passed{% else %}failed{% endif %}">
-            <h3>Basic Tests</h3>
-            <p>Status: {% if hostvars[host].test_result.rc == 0 %}PASSED{% else %}FAILED{% endif %}</p>
-            <div class="test-details">
-                {{ hostvars[host].test_result.stdout }}
-                {{ hostvars[host].test_result.stderr }}
+        <div class="summary">
+            <h2>Test Summary</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <div class="label">Total Hosts</div>
+                    <div class="value">{{ all_test_results | length }}</div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Passed Tests</div>
+                    <div class="value">
+                        {{ all_test_results | selectattr('basic_tests.passed', 'equalto', true) | list | length }} / {{ all_test_results | length }}
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">Security Tests</div>
+                    <div class="value">
+                        {{ all_test_results | selectattr('security_tests.passed', 'equalto', true) | list | length }} / {{ all_test_results | length }}
+                    </div>
+                </div>
+                <div class="summary-item">
+                    <div class="label">CLI Tests</div>
+                    <div class="value">
+                        {{ all_test_results | selectattr('cli_test.passed', 'equalto', true) | list | length }} / {{ all_test_results | length }}
+                    </div>
+                </div>
             </div>
         </div>
-        {% endif %}
-
-        {% if 'security_test_result' in hostvars[host] %}
-        <div class="test-result {% if hostvars[host].security_test_result.rc == 0 %}passed{% else %}failed{% endif %}">
-            <h3>Security Tests</h3>
-            <p>Status: {% if hostvars[host].security_test_result.rc == 0 %}PASSED{% else %}FAILED{% endif %}</p>
-            <div class="test-details">
-                {{ hostvars[host].security_test_result.stdout }}
-                {{ hostvars[host].security_test_result.stderr }}
+        
+        {% for result in all_test_results %}
+        <div class="host-card">
+            <div class="host-header">
+                <div>
+                    <h2 class="host-title">{{ result.host }}</h2>
+                    <div class="host-os">
+                        {{ result.os_family }}{% if result.os_distribution != 'unknown' %} {{ result.os_distribution }} {{ result.os_version }}{% endif %}
+                    </div>
+                </div>
+                <div class="test-metrics">
+                    <div class="metric">
+                        <span class="label">Basic:</span>
+                        <span class="value">{{ '✓' if result.basic_tests.passed | bool else '✗' }}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="label">Security:</span>
+                        <span class="value">{{ '✓' if result.security_tests.passed | bool else '✗' }}</span>
+                    </div>
+                    <div class="metric">
+                        <span class="label">CLI:</span>
+                        <span class="value">{{ '✓' if result.cli_test.passed | bool else '✗' }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Basic Tests -->
+            <div class="test-result">
+                <div class="test-header" onclick="toggleDetails('basic-{{ loop.index }}')">
+                    <h3 class="test-title">
+                        Basic Tests
+                        <span class="test-status status-{{ 'passed' if result.basic_tests.passed | bool else 'failed' }}">
+                            {{ 'PASSED' if result.basic_tests.passed | bool else 'FAILED' }}
+                        </span>
+                    </h3>
+                    <button class="toggle-details" aria-expanded="false" aria-controls="basic-{{ loop.index }}">
+                        <span class="toggle-icon">▼</span> Details
+                    </button>
+                </div>
+                <div id="basic-{{ loop.index }}" class="test-details">
+                    {% if result.basic_tests.output %}
+                    <h4>Output:</h4>
+                    <pre>{{ result.basic_tests.output }}</pre>
+                    {% endif %}
+                    {% if result.basic_tests.error %}
+                    <h4>Error:</h4>
+                    <pre class="error">{{ result.basic_tests.error }}</pre>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Security Tests -->
+            <div class="test-result">
+                <div class="test-header" onclick="toggleDetails('security-{{ loop.index }}')">
+                    <h3 class="test-title">
+                        Security Tests
+                        <span class="test-status status-{{ 'passed' if result.security_tests.passed | bool else 'failed' }}">
+                            {{ 'PASSED' if result.security_tests.passed | bool else 'FAILED' }}
+                        </span>
+                    </h3>
+                    <button class="toggle-details" aria-expanded="false" aria-controls="security-{{ loop.index }}">
+                        <span class="toggle-icon">▼</span> Details
+                    </button>
+                </div>
+                <div id="security-{{ loop.index }}" class="test-details">
+                    {% if result.security_tests.output %}
+                    <h4>Output:</h4>
+                    <pre>{{ result.security_tests.output }}</pre>
+                    {% endif %}
+                    {% if result.security_tests.error %}
+                    <h4>Error:</h4>
+                    <pre class="error">{{ result.security_tests.error }}</pre>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- LLM Tests -->
+            <div class="test-result">
+                <div class="test-header" onclick="toggleDetails('llm-{{ loop.index }}')">
+                    <h3 class="test-title">
+                        LLM Interface Tests
+                        <span class="test-status status-{{ 'skipped' if result.llm_tests.skipped | bool else 'passed' if result.llm_tests.passed | bool else 'failed' }}">
+                            {{ 'SKIPPED' if result.llm_tests.skipped | bool else 'PASSED' if result.llm_tests.passed | bool else 'FAILED' }}
+                        </span>
+                    </h3>
+                    <button class="toggle-details" aria-expanded="false" aria-controls="llm-{{ loop.index }}">
+                        <span class="toggle-icon">▼</span> Details
+                    </button>
+                </div>
+                <div id="llm-{{ loop.index }}" class="test-details">
+                    {% if result.llm_tests.skipped | bool %}
+                    <p>LLM tests are only run on Ubuntu hosts.</p>
+                    {% else %}
+                        {% if result.llm_tests.output %}
+                        <h4>Output:</h4>
+                        <pre>{{ result.llm_tests.output }}</pre>
+                        {% endif %}
+                        {% if result.llm_tests.error %}
+                        <h4>Error:</h4>
+                        <pre class="error">{{ result.llm_tests.error }}</pre>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- CLI Test -->
+            <div class="test-result">
+                <div class="test-header" onclick="toggleDetails('cli-{{ loop.index }}')">
+                    <h3 class="test-title">
+                        CLI Test
+                        <span class="test-status status-{{ 'passed' if result.cli_test.passed | bool else 'failed' }}">
+                            {{ 'PASSED' if result.cli_test.passed | bool else 'FAILED' }}
+                        </span>
+                    </h3>
+                    <button class="toggle-details" aria-expanded="false" aria-controls="cli-{{ loop.index }}">
+                        <span class="toggle-icon">▼</span> Details
+                    </button>
+                </div>
+                <div id="cli-{{ loop.index }}" class="test-details">
+                    {% if result.cli_test.output %}
+                    <h4>Output:</h4>
+                    <pre>{{ result.cli_test.output }}</pre>
+                    {% endif %}
+                    {% if result.cli_test.error %}
+                    <h4>Error:</h4>
+                    <pre class="error">{{ result.cli_test.error }}</pre>
+                    {% endif %}
+                </div>
             </div>
         </div>
-        {% endif %}
-
-        {% if 'llm_test_result' in hostvars[host] %}
-        <div class="test-result {% if hostvars[host].llm_test_result.rc == 0 %}passed{% else %}failed{% endif %}">
-            <h3>LLM Interface Tests</h3>
-            <p>Status: {% if hostvars[host].llm_test_result.rc == 0 %}PASSED{% else %}FAILED{% endif %}</p>
-            <div class="test-details">
-                {{ hostvars[host].llm_test_result.stdout }}
-                {{ hostvars[host].llm_test_result.stderr }}
-            </div>
+        {% endfor %}
+        
+        <div class="timestamp">
+            Report generated on {{ ansible_date_time.iso8601 }}
         </div>
-        {% endif %}
-
-        {% if 'cli_test' in hostvars[host] %}
-        <div class="test-result {% if hostvars[host].cli_test.rc == 0 %}passed{% else %}failed{% endif %}">
-            <h3>CLI Test</h3>
-            <p>Status: {% if hostvars[host].cli_test.rc == 0 %}PASSED{% else %}FAILED{% endif %}</p>
-            <div class="test-details">
-                {{ hostvars[host].cli_test.stdout }}
-                {{ hostvars[host].cli_test.stderr }}
-            </div>
-        </div>
-        {% endif %}
     </div>
-    {% endfor %}
+    
+    <script>
+        function toggleDetails(id) {
+            const details = document.getElementById(id);
+            const button = details.previousElementSibling.querySelector('.toggle-details');
+            const icon = button.querySelector('.toggle-icon');
+            
+            details.classList.toggle('expanded');
+            const isExpanded = details.classList.contains('expanded');
+            
+            // Update button aria-expanded attribute
+            button.setAttribute('aria-expanded', isExpanded);
+            
+            // Toggle icon
+            icon.textContent = isExpanded ? '▲' : '▼';
+        }
+        
+        // Add click handler for all toggle buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleButtons = document.querySelectorAll('.toggle-details');
+            toggleButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const header = this.closest('.test-header');
+                    const detailsId = this.getAttribute('aria-controls');
+                    const details = document.getElementById(detailsId);
+                    const icon = this.querySelector('.toggle-icon');
+                    
+                    details.classList.toggle('expanded');
+                    const isExpanded = details.classList.contains('expanded');
+                    this.setAttribute('aria-expanded', isExpanded);
+                    icon.textContent = isExpanded ? '▲' : '▼';
+                });
+            });
+            
+            // Add click handler for test headers (for better mobile experience)
+            const testHeaders = document.querySelectorAll('.test-header');
+            testHeaders.forEach(header => {
+                header.addEventListener('click', function() {
+                    const button = this.querySelector('.toggle-details');
+                    if (button) {
+                        button.click();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
