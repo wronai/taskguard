@@ -9,11 +9,6 @@ readme = "README.md"
 homepage = "https://github.com/wronai/taskguard"
 documentation = "https://taskguard.readthedocs.io"
 repository = "https://github.com/wronai/taskguard.git"
-# Remove any emoji from description as it might cause issues
-# Add project_urls for better PyPI display
-[tool.poetry.urls]
-"Bug Tracker" = "https://github.com/wronai/taskguard/issues"
-"Changelog" = "https://github.com/wronai/taskguard/blob/main/CHANGELOG.md"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -31,6 +26,11 @@ classifiers = [
     "Environment :: Console",
     "Natural Language :: English",
 ]
+
+# Add project_urls for better PyPI display
+[tool.poetry.urls]
+"Bug Tracker" = "https://github.com/wronai/taskguard/issues"
+"Changelog" = "https://github.com/wronai/taskguard/blob/main/CHANGELOG.md"
 
 [tool.poetry.dependencies]
 python = "^3.8"
