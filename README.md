@@ -7,6 +7,40 @@
 
 **Your AI-powered development assistant that controls LLM behavior, enforces best practices, and maintains laser focus through intelligent automation.**
 
+## 🔌 **Disabling TaskGuard**
+
+To disable TaskGuard, use one of the following methods:
+
+### Temporary Disable (current session only):
+```bash
+unset -f python python3 node npm npx git 2>/dev/null
+```
+
+### Permanent Disable:
+```bash
+# Remove TaskGuard from shell config
+sed -i '/source.*llmtask_shell/d' ~/.bashrc ~/.zshrc 2>/dev/null
+
+# Remove shell functions file
+rm -f ~/.llmtask_shell.sh
+
+# Clear environment variables
+unset TASKGUARD_ENABLED
+
+# Restart your shell
+exec $SHELL
+```
+
+### Complete Removal:
+```bash
+# Remove all configuration files
+rm -f ~/.llmcontrol.yaml ~/.llmstate.json ~/.llmtask_shell.sh
+
+# Remove from shell config
+sed -i '/source.*llmtask_shell/d' ~/.bashrc ~/.zshrc 2>/dev/null
+exec $SHELL
+```
+
 ## 🎯 **What This Solves**
 
 LLMs are powerful but chaotic - they create too many files, ignore best practices, lose focus, and generate dangerous code. **TaskGuard** gives you an intelligent system that:
