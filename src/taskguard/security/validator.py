@@ -224,9 +224,7 @@ class SecurityASTAnalyzer(ast.NodeVisitor):
                     self.issues.append(
                         SecurityIssue(
                             level=SecurityLevel.HIGH,
-                            message=(
-                                "Potential shell injection with shell=True"
-                            ),
+                            message=("Potential shell injection with shell=True"),
                             line=node.lineno,
                             col_offset=node.col_offset,
                             fix_suggestion=(
